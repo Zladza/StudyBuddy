@@ -14,7 +14,7 @@ create table messages (
   conversation_id  uuid references conversations(id) on delete cascade not null,
   role             text not null check (role in ('user', 'assistant')),
   content          text not null,
-  has_pdf          boolean default false,
+  has_pdf          boolean not null default false,
   created_at       timestamptz default now()
 );
 
@@ -23,7 +23,8 @@ alter table messages enable row level security;
 
 create policy "users see own conversations"
   on conversations for all
-  using (auth.uid() = user_id);
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
 
 create policy "users see own messages"
   on messages for all
@@ -31,4 +32,12 @@ create policy "users see own messages"
     conversation_id in (
       select id from conversations where user_id = auth.uid()
     )
+  )
+  with check (
+    conversation_id in (
+      select id from conversations where user_id = auth.uid()
+    )
   );
+
+create index on conversations(user_id);
+create index on messages(conversation_id);
