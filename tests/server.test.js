@@ -17,8 +17,10 @@ test('GET /api/health returns 200 with status ok', async () => {
 test('GET /api/config returns supabaseUrl and supabaseAnonKey', async () => {
   const res = await request(app).get('/api/config')
   expect(res.status).toBe(200)
-  expect(res.body.supabaseUrl).toBe('https://test.supabase.co')
-  expect(res.body.supabaseAnonKey).toBe('test-anon-key')
+  expect(res.body).toEqual({
+    supabaseUrl: 'https://test.supabase.co',
+    supabaseAnonKey: 'test-anon-key'
+  })
 })
 
 test('GET /nonexistent returns 404', async () => {
