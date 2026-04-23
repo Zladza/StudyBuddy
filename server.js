@@ -18,7 +18,17 @@ app.get('/api/config', (req, res) => {
   })
 })
 
-// Auth, history, and chat routes are mounted in later tasks.
+const { makeAuthMiddleware } = require('./src/auth-middleware')
+const { makeHistoryHandler } = require('./src/history-handler')
+
+const requireAuth = makeAuthMiddleware()
+const history = makeHistoryHandler()
+
+app.get('/api/history', requireAuth, (req, res) => history.listConversations(req, res))
+app.post('/api/history', requireAuth, (req, res) => history.saveExchange(req, res))
+app.get('/api/history/:id', requireAuth, (req, res) => history.getConversation(req, res))
+
+// Chat routes are mounted in later tasks.
 // 404 fallback for unmatched routes
 app.use((req, res) => {
   res.status(404).json({ error: 'Not found' })

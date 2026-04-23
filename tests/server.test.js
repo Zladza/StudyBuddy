@@ -27,3 +27,18 @@ test('GET /nonexistent returns 404', async () => {
   const res = await request(app).get('/nonexistent-route-xyz')
   expect(res.status).toBe(404)
 })
+
+test('GET /api/history returns 401 without token', async () => {
+  const res = await request(app).get('/api/history')
+  expect(res.status).toBe(401)
+})
+
+test('POST /api/history returns 401 without token', async () => {
+  const res = await request(app).post('/api/history').send({})
+  expect(res.status).toBe(401)
+})
+
+test('GET /api/history/some-id returns 401 without token', async () => {
+  const res = await request(app).get('/api/history/some-id')
+  expect(res.status).toBe(401)
+})
