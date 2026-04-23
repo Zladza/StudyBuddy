@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyBuddy</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    #chat-messages { scroll-behavior: smooth; }
+    .msg-bubble { line-height: 1.65; }
+    .msg-bubble p { margin-bottom: 0.5rem; }
+    .msg-bubble p:last-child { margin-bottom: 0; }
+    .msg-bubble ul, .msg-bubble ol { padding-left: 1.25rem; margin-bottom: 0.5rem; }
+    .msg-bubble code { background: rgba(0,0,0,0.06); padding: 0.1em 0.3em; border-radius: 4px; font-size: 0.875em; }
+    .msg-bubble pre { background: rgba(0,0,0,0.06); padding: 0.75rem; border-radius: 8px; overflow-x: auto; margin-bottom: 0.5rem; }
+    .msg-bubble pre code { background: none; padding: 0; }
+    /* Sidebar transition */
+    #sidebar { transition: transform 0.2s ease; }
+    @media (max-width: 640px) {
+      #sidebar.hidden-mobile { transform: translateX(-100%); }
+    }
+  </style>
+</head>
+<body class="h-screen flex overflow-hidden bg-slate-50">
+
+  <!-- Mobile overlay -->
+  <div id="mobile-overlay" onclick="closeSidebar()"
+    class="fixed inset-0 bg-black/40 z-20 hidden sm:hidden"></div>
+
+  <!-- Sidebar -->
+  <aside id="sidebar"
+    class="fixed sm:relative z-30 sm:z-auto w-56 h-full bg-[#1F4E79] flex flex-col py-5 px-3.5 gap-2 shrink-0 -translate-x-full sm:translate-x-0">
+
+    <!-- Brand -->
+    <div class="flex items-center gap-2 px-1 mb-2">
+      <div class="w-7 h-7 bg-blue-500 rounded-lg flex items-center justify-center text-sm shrink-0">📚</div>
+      <span class="text-white font-semibold text-sm">StudyBuddy</span>
+      <span class="text-blue-300 text-[10px] font-semibold tracking-wide">BETA</span>
+    </div>
+
+    <!-- New chat -->
+    <button onclick="startNewChat()"
+      class="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg px-3 py-2 text-white text-sm font-medium transition">
+      ＋ <span id="btn-new-chat">Novi razgovor</span>
+    </button>
+
+    <!-- History -->
+    <div id="history-section" class="hidden">
+      <p id="lbl-history" class="text-blue-300 text-[10px] font-semibold uppercase tracking-widest px-1 pt-2 pb-1">Istorija</p>
+      <div id="history-list" class="flex flex-col gap-0.5 max-h-40 overflow-y-auto"></div>
+    </div>
+
+    <!-- Quick actions -->
+    <p id="lbl-quick-actions" class="text-blue-300 text-[10px] font-semibold uppercase tracking-widest px-1 pt-2 pb-1">Brze akcije</p>
+    <div id="quick-actions" class="flex flex-col gap-0.5">
+      <button onclick="insertTemplate('tplSummarize')" class="quick-action-btn flex items-center gap-2 px-2 py-1.5 rounded-lg text-white/85 hover:bg-white/10 text-sm text-left transition">📄 <span data-i18n="summarize">Sumiraj</span></button>
+      <button onclick="insertTemplate('tplExplain')" class="quick-action-btn flex items-center gap-2 px-2 py-1.5 rounded-lg text-white/85 hover:bg-white/10 text-sm text-left transition">💡 <span data-i18n="explain">Objasni</span></button>
+      <button onclick="insertTemplate('tplExamPrep')" class="quick-action-btn flex items-center gap-2 px-2 py-1.5 rounded-lg text-white/85 hover:bg-white/10 text-sm text-left transition">📝 <span data-i18n="examPrep">Priprema za ispit</span></button>
+      <button onclick="insertTemplate('tplEssay')" class="quick-action-btn flex items-center gap-2 px-2 py-1.5 rounded-lg text-white/85 hover:bg-white/10 text-sm text-left transition">✍️ <span data-i18n="essay">Seminarski</span></button>
+      <button onclick="insertTemplate('tplSolve')" class="quick-action-btn flex items-center gap-2 px-2 py-1.5 rounded-lg text-white/85 hover:bg-white/10 text-sm text-left transition">🔢 <span data-i18n="solve">Reši zadatak</span></button>
+    </div>
+
+    <div class="flex-1"></div>
+
+    <!-- Language toggle -->
+    <div class="flex bg-white/10 rounded-lg overflow-hidden mb-2">
+      <button id="lang-sr" onclick="setLanguage('sr')"
+        class="flex-1 py-1.5 text-xs font-semibold text-white bg-white/20 rounded-md transition">SRP</button>
+      <button id="lang-en" onclick="setLanguage('en')"
+        class="flex-1 py-1.5 text-xs font-semibold text-white/60 transition">ENG</button>
+    </div>
+
+    <!-- Disclaimer -->
+    <p id="disclaimer" class="text-white/40 text-[10px] leading-relaxed px-1">
+      Ne pišem gotove ispite ni seminarske radove.
+    </p>
+  </aside>
+
+  <!-- Main -->
+  <div class="flex-1 flex flex-col min-w-0 h-full">
+
+    <!-- Top bar -->
+    <header class="flex items-center justify-between px-4 py-3 bg-white border-b border-slate-200 shrink-0">
+      <div class="flex items-center gap-3">
+        <!-- Hamburger (mobile only) -->
+        <button onclick="openSidebar()" class="sm:hidden text-slate-500 hover:text-slate-800 text-lg">☰</button>
+        <span id="conversation-title" class="text-sm font-medium text-slate-600">Novi razgovor</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span id="user-email" class="text-xs text-slate-400 hidden sm:block"></span>
+        <button onclick="signOut()" class="text-xs text-slate-500 hover:text-slate-800 transition" id="btn-logout">Odjava</button>
+      </div>
+    </header>
+
+    <!-- Chat area -->
+    <div id="chat-messages" class="flex-1 overflow-y-auto p-4 sm:p-6 flex flex-col gap-4">
+
+      <!-- Empty state (shown by default, hidden when there are messages) -->
+      <div id="empty-state" class="flex flex-col items-center justify-center flex-1 gap-6 text-center py-8">
+        <div>
+          <p id="greeting" class="text-xl font-semibold text-slate-800">Zdravo! 👋</p>
+          <p id="greeting-subtitle" class="text-sm text-slate-500 mt-1 max-w-xs">
+            Tvoj stariji kolega za učenje. Postavi pitanje ili odaberi početak:
+          </p>
+        </div>
+        <div class="grid grid-cols-2 gap-2 w-full max-w-sm">
+          <button onclick="insertTemplate('tplExplain')"
+            class="bg-white border border-slate-200 rounded-xl p-3 text-left text-sm text-slate-700 hover:border-[#1F4E79] hover:shadow-sm transition">
+            <strong class="block text-[11px] text-[#1F4E79] font-semibold uppercase tracking-wide mb-1" data-i18n="explain">Objasni</strong>
+            <span data-i18n="starterExplain">Objasni mi pojam iz predavanja</span>
+          </button>
+          <button onclick="insertTemplate('tplExamPrep')"
+            class="bg-white border border-slate-200 rounded-xl p-3 text-left text-sm text-slate-700 hover:border-[#1F4E79] hover:shadow-sm transition">
+            <strong class="block text-[11px] text-[#1F4E79] font-semibold uppercase tracking-wide mb-1" data-i18n="examPrep">Priprema za ispit</strong>
+            <span data-i18n="starterExamQuestions">Napravi 10 pitanja za vežbu</span>
+          </button>
+          <button onclick="insertTemplate('tplEssay')"
+            class="bg-white border border-slate-200 rounded-xl p-3 text-left text-sm text-slate-700 hover:border-[#1F4E79] hover:shadow-sm transition">
+            <strong class="block text-[11px] text-[#1F4E79] font-semibold uppercase tracking-wide mb-1" data-i18n="essay">Seminarski</strong>
+            <span data-i18n="starterEssay">Pomozi mi da strukturišem seminarski</span>
+          </button>
+          <button onclick="insertTemplate('tplSolve')"
+            class="bg-white border border-slate-200 rounded-xl p-3 text-left text-sm text-slate-700 hover:border-[#1F4E79] hover:shadow-sm transition">
+            <strong class="block text-[11px] text-[#1F4E79] font-semibold uppercase tracking-wide mb-1" data-i18n="solve">Reši zadatak</strong>
+            <span data-i18n="starterSolve">Prođi korak po korak</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PDF preview bar (hidden until PDF attached) -->
+    <div id="pdf-bar" class="hidden px-4 py-2 bg-blue-50 border-t border-blue-100 flex items-center gap-2 text-sm text-blue-700">
+      📎 <span id="pdf-name"></span>
+      <button onclick="removePdf()" class="ml-auto text-blue-500 hover:text-blue-700 text-xs font-medium" data-i18n="removePdf">Ukloni</button>
+    </div>
+
+    <!-- Input bar -->
+    <div class="px-4 py-3 bg-white border-t border-slate-200 shrink-0">
+      <div class="flex items-end gap-2 bg-slate-100 border border-slate-200 rounded-xl px-3 py-2">
+        <textarea id="message-input" rows="1"
+          class="flex-1 bg-transparent border-none outline-none text-sm text-slate-800 resize-none leading-relaxed max-h-32"
+          placeholder="Postavi pitanje ili priloži PDF..."
+          onkeydown="handleInputKeydown(event)"
+          oninput="autoResize(this)"></textarea>
+        <input type="file" id="pdf-input" accept=".pdf" class="hidden" onchange="handlePdfSelect(event)">
+        <button onclick="document.getElementById('pdf-input').click()"
+          class="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-600 rounded-lg transition shrink-0 text-base">📎</button>
+        <button onclick="sendMessage()" id="send-btn"
+          class="w-8 h-8 flex items-center justify-center bg-[#1F4E79] text-white rounded-lg hover:bg-[#1a4268] transition shrink-0 font-bold text-sm">↑</button>
+      </div>
+      <p class="text-center text-[10px] text-slate-400 mt-1.5" id="footer-disclaimer">
+        StudyBuddy može da greši. Uvek proveri važne informacije.
+      </p>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/i18n.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/chat.js"></script>
+</body>
+</html>
