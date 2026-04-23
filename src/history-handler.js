@@ -51,7 +51,7 @@ function makeHistoryHandler(supabaseClient) {
     const { conversationId, language, messages } = req.body
 
     if (!Array.isArray(messages) || messages.length === 0) {
-      return res.status(400).json({ error: 'Messages must be a non-empty array.' })
+      return res.status(400).json({ error: 'Poruke moraju biti neprazan niz.' })
     }
 
     let convId = conversationId
@@ -70,11 +70,28 @@ function makeHistoryHandler(supabaseClient) {
       }
       convId = data.id
     } else {
-      await db
+      // Verify ownership and update timestamp
+      const { data: ownedConv, error: ownerError } = await db
+        .from('conversations')
+        .select('id')
+        .eq('id', convId)
+        .eq('user_id', req.user.id)
+        .single()
+
+      if (ownerError || !ownedConv) {
+        return res.status(404).json({ error: 'Razgovor nije pronađen.' })
+      }
+
+      const { error: updateError } = await db
         .from('conversations')
         .update({ updated_at: new Date().toISOString() })
         .eq('id', convId)
         .eq('user_id', req.user.id)
+
+      if (updateError) {
+        console.error('saveExchange update conv error:', updateError)
+        return res.status(500).json({ error: 'Greška pri čuvanju razgovora.' })
+      }
     }
 
     const rows = messages.map(m => ({
