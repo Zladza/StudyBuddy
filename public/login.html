@@ -4,33 +4,40 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>StudyBuddy — Prijava</title>
+  <script>(function(){const t=localStorage.getItem('sb-theme')||'light';if(t==='dark')document.documentElement.classList.add('dark')})()</script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={darkMode:'class'}</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <style> body { font-family: 'Inter', sans-serif; } </style>
 </head>
-<body class="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+<body class="min-h-screen bg-slate-50 dark:bg-gray-900 flex items-center justify-center p-4">
+
+  <!-- Theme toggle -->
+  <button onclick="toggleTheme()" id="theme-btn"
+    class="fixed top-4 right-4 w-9 h-9 rounded-full bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 flex items-center justify-center text-base shadow-sm hover:shadow-md transition">
+  </button>
 
   <div class="w-full max-w-sm">
     <!-- Brand -->
     <div class="text-center mb-8">
       <div class="inline-flex items-center gap-2 mb-2">
         <div class="w-9 h-9 bg-blue-500 rounded-lg flex items-center justify-center text-white text-lg">📚</div>
-        <span class="text-xl font-semibold text-slate-800">StudyBuddy</span>
-        <span class="text-xs font-semibold text-blue-500 bg-blue-50 px-2 py-0.5 rounded-full">BETA</span>
+        <span class="text-xl font-semibold text-slate-800 dark:text-gray-100">StudyBuddy</span>
+        <span class="text-xs font-semibold text-blue-500 bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded-full">BETA</span>
       </div>
     </div>
 
     <!-- Card -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-slate-200 dark:border-gray-700 p-6">
       <!-- Tabs -->
-      <div class="flex mb-6 bg-slate-100 rounded-lg p-1">
+      <div class="flex mb-6 bg-slate-100 dark:bg-gray-700 rounded-lg p-1">
         <button id="tab-login" onclick="showTab('login')"
-          class="flex-1 py-1.5 text-sm font-medium rounded-md bg-white shadow-sm text-slate-800 transition">
+          class="flex-1 py-1.5 text-sm font-medium rounded-md bg-white dark:bg-gray-600 shadow-sm text-slate-800 dark:text-gray-100 transition">
           Prijava
         </button>
         <button id="tab-register" onclick="showTab('register')"
-          class="flex-1 py-1.5 text-sm font-medium rounded-md text-slate-500 transition">
+          class="flex-1 py-1.5 text-sm font-medium rounded-md text-slate-500 dark:text-gray-400 transition">
           Registracija
         </button>
       </div>
@@ -38,15 +45,15 @@
       <!-- Login form -->
       <form id="form-login" onsubmit="handleLogin(event)" class="space-y-4">
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">Email</label>
+          <label class="block text-sm font-medium text-slate-700 dark:text-gray-200 mb-1">Email</label>
           <input id="login-email" type="email" required
-            class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#1F4E79] focus:ring-2 focus:ring-[#1F4E79]/10"
+            class="w-full border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-slate-800 dark:text-gray-100 placeholder-slate-400 dark:placeholder-gray-500 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#1F4E79] focus:ring-2 focus:ring-[#1F4E79]/10"
             placeholder="ana@etf.rs">
         </div>
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">Lozinka</label>
+          <label class="block text-sm font-medium text-slate-700 dark:text-gray-200 mb-1">Lozinka</label>
           <input id="login-password" type="password" required
-            class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#1F4E79] focus:ring-2 focus:ring-[#1F4E79]/10">
+            class="w-full border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-slate-800 dark:text-gray-100 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#1F4E79] focus:ring-2 focus:ring-[#1F4E79]/10">
         </div>
         <p id="login-error" class="text-red-500 text-sm hidden"></p>
         <button type="submit" id="login-btn"
@@ -58,20 +65,20 @@
       <!-- Register form -->
       <form id="form-register" onsubmit="handleRegister(event)" class="space-y-4 hidden">
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">Email</label>
+          <label class="block text-sm font-medium text-slate-700 dark:text-gray-200 mb-1">Email</label>
           <input id="reg-email" type="email" required
-            class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#1F4E79] focus:ring-2 focus:ring-[#1F4E79]/10"
+            class="w-full border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-slate-800 dark:text-gray-100 placeholder-slate-400 dark:placeholder-gray-500 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#1F4E79] focus:ring-2 focus:ring-[#1F4E79]/10"
             placeholder="ana@etf.rs">
         </div>
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">Lozinka</label>
+          <label class="block text-sm font-medium text-slate-700 dark:text-gray-200 mb-1">Lozinka</label>
           <input id="reg-password" type="password" required minlength="8"
-            class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#1F4E79] focus:ring-2 focus:ring-[#1F4E79]/10">
+            class="w-full border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-slate-800 dark:text-gray-100 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#1F4E79] focus:ring-2 focus:ring-[#1F4E79]/10">
         </div>
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">Potvrdi lozinku</label>
+          <label class="block text-sm font-medium text-slate-700 dark:text-gray-200 mb-1">Potvrdi lozinku</label>
           <input id="reg-confirm" type="password" required
-            class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#1F4E79] focus:ring-2 focus:ring-[#1F4E79]/10">
+            class="w-full border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-slate-800 dark:text-gray-100 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#1F4E79] focus:ring-2 focus:ring-[#1F4E79]/10">
         </div>
         <p id="reg-error" class="text-red-500 text-sm hidden"></p>
         <p id="reg-success" class="text-green-600 text-sm hidden"></p>
@@ -86,6 +93,19 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/js/i18n.js"></script>
   <script src="/js/auth.js"></script>
+  <script src="/js/theme.js"></script>
+  <script>
+    function updateThemeBtn() {
+      const btn = document.getElementById('theme-btn')
+      if (btn) btn.textContent = getCurrentTheme() === 'dark' ? '☀️' : '🌙'
+    }
+    updateThemeBtn()
+
+    function toggleTheme() {
+      setTheme(getCurrentTheme() === 'dark' ? 'light' : 'dark')
+      updateThemeBtn()
+    }
+  </script>
   <script>
     // Redirect to chat if already logged in
     (async () => {

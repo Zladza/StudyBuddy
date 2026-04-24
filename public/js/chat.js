@@ -322,11 +322,11 @@ function createBubbleRow(role) {
   row.className = `chat-bubble-row flex gap-3 ${role === 'user' ? 'flex-row-reverse' : ''}`
 
   const avatar = document.createElement('div')
-  avatar.className = `w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold shrink-0 ${role === 'user' ? 'bg-[#1F4E79] text-white' : 'bg-blue-100 text-[#1F4E79]'}`
+  avatar.className = `w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold shrink-0 ${role === 'user' ? 'bg-[#1F4E79] text-white' : 'bg-blue-100 dark:bg-blue-900 text-[#1F4E79] dark:text-blue-300'}`
   avatar.textContent = role === 'user' ? 'Ti' : 'SB'
 
   const bubble = document.createElement('div')
-  bubble.className = `msg-bubble max-w-[85%] rounded-2xl px-4 py-2.5 text-sm ${role === 'user' ? 'bg-[#1F4E79] text-white' : 'bg-white border border-slate-200 text-slate-800'}`
+  bubble.className = `msg-bubble max-w-[85%] rounded-2xl px-4 py-2.5 text-sm ${role === 'user' ? 'bg-[#1F4E79] text-white' : 'bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-800 dark:text-gray-100'}`
 
   row.appendChild(avatar)
   row.appendChild(bubble)
@@ -357,5 +357,27 @@ function autoResize(el) {
 }
 
 function showError(msg) {
-  alert(msg) // simple for MVP; can be replaced with a toast
+  alert(msg)
+}
+
+// ── Settings modal ─────────────────────────────────────────────────────────
+function openSettings() {
+  document.getElementById('settings-modal').classList.remove('hidden')
+  updateThemeButtons()
+}
+
+function closeSettings() {
+  document.getElementById('settings-modal').classList.add('hidden')
+}
+
+function closeSettingsOnOverlay(e) {
+  if (e.target === e.currentTarget) closeSettings()
+}
+
+function updateThemeButtons() {
+  const theme = getCurrentTheme()
+  const activeClass = 'flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border text-sm font-medium transition bg-[#1F4E79] text-white border-[#1F4E79]'
+  const inactiveClass = 'flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border text-sm font-medium transition bg-white dark:bg-gray-700 text-slate-600 dark:text-gray-300 border-slate-200 dark:border-gray-600'
+  document.getElementById('theme-light-btn').className = theme === 'light' ? activeClass : inactiveClass
+  document.getElementById('theme-dark-btn').className = theme === 'dark' ? activeClass : inactiveClass
 }
