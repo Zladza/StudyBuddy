@@ -48,7 +48,7 @@ function makeHistoryHandler(supabaseClient) {
   }
 
   async function saveExchange(req, res) {
-    const { conversationId, language, messages } = req.body
+    const { conversationId, language, messages, title } = req.body
 
     if (!Array.isArray(messages) || messages.length === 0) {
       return res.status(400).json({ error: 'Poruke moraju biti neprazan niz.' })
@@ -57,7 +57,7 @@ function makeHistoryHandler(supabaseClient) {
     let convId = conversationId
 
     if (!convId) {
-      const autoTitle = messages[0]?.content?.slice(0, 50) || 'Novi razgovor'
+      const autoTitle = (title && title.trim()) ? title.trim() : (messages[0]?.content?.slice(0, 50) || 'Novi razgovor')
       const { data, error } = await db
         .from('conversations')
         .insert({ user_id: req.user.id, title: autoTitle, language: language || 'sr' })
@@ -110,7 +110,76 @@ function makeHistoryHandler(supabaseClient) {
     res.json({ conversationId: convId })
   }
 
-  return { listConversations, getConversation, saveExchange }
+  async function deleteConversation(req, res) {
+    const { id } = req.params
+    const { error } = await db
+      .from('conversations')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', req.user.id)
+
+    if (error) {
+      console.error('deleteConversation error:', error)
+      return res.status(500).json({ error: 'Greška pri brisanju razgovora.' })
+    }
+    res.json({ success: true })
+  }
+
+  async function updateConversationTitle(req, res) {
+    const { id } = req.params
+    const { title } = req.body
+
+    if (!title || typeof title !== 'string' || !title.trim()) {
+      return res.status(400).json({ error: 'Naslov ne može biti prazan.' })
+    }
+
+    const { error } = await db
+      .from('conversations')
+      .update({ title: title.trim() })
+      .eq('id', id)
+      .eq('user_id', req.user.id)
+
+    if (error) {
+      console.error('updateConversationTitle error:', error)
+      return res.status(500).json({ error: 'Greška pri ažuriranju naslova.' })
+    }
+    res.json({ success: true })
+  }
+
+  async function replaceMessages(req, res) {
+    const { id } = req.params
+    const { messages } = req.body
+
+    if (!Array.isArray(messages)) {
+      return res.status(400).json({ error: 'Messages must be an array.' })
+    }
+
+    const { data: conv, error: ownerError } = await db
+      .from('conversations').select('id').eq('id', id).eq('user_id', req.user.id).single()
+
+    if (ownerError || !conv) return res.status(404).json({ error: 'Not found.' })
+
+    await db.from('messages').delete().eq('conversation_id', id)
+
+    if (messages.length > 0) {
+      const rows = messages.map(m => ({
+        conversation_id: id,
+        role: m.role,
+        content: m.content,
+        has_pdf: m.has_pdf || false
+      }))
+      const { error } = await db.from('messages').insert(rows)
+      if (error) {
+        console.error('replaceMessages error:', error)
+        return res.status(500).json({ error: 'Greška pri čuvanju poruka.' })
+      }
+    }
+
+    await db.from('conversations').update({ updated_at: new Date().toISOString() }).eq('id', id)
+    res.json({ success: true })
+  }
+
+  return { listConversations, getConversation, saveExchange, deleteConversation, updateConversationTitle, replaceMessages }
 }
 
 module.exports = { makeHistoryHandler }

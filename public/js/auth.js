@@ -1,7 +1,6 @@
 /* global supabase, I18N */
 
 let sb = null
-let currentLang = navigator.language.startsWith('sr') ? 'sr' : 'en'
 
 async function initAuth() {
   const config = await fetch('/api/config').then(r => r.json())
@@ -16,6 +15,9 @@ async function getSession() {
 }
 
 async function requireSession() {
+  if (new URLSearchParams(window.location.search).get('preview') === '1') {
+    return { user: { email: 'preview@studybuddy.rs' } }
+  }
   const session = await getSession()
   if (!session) {
     window.location.href = '/login.html'

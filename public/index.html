@@ -4,13 +4,29 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>StudyBuddy</title>
-  <script>(function(){const t=localStorage.getItem('sb-theme')||'light';if(t==='dark')document.documentElement.classList.add('dark')})()</script>
+  <script>(function(){const t=localStorage.getItem('sb-theme')||'light';if(t==='dark')document.documentElement.classList.add('dark');const c=localStorage.getItem('sb-color')||'navy';if(c!=='navy')document.documentElement.dataset.color=c})()</script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config={darkMode:'class'}</script>
+  <script>tailwind.config = { darkMode: 'class' }</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link id="hljs-light" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github.min.css">
+  <link id="hljs-dark" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github-dark.min.css" disabled>
+  <script>
+    (function(){const t=localStorage.getItem('sb-theme')||'light';if(t==='dark'){document.getElementById('hljs-light').disabled=true;document.getElementById('hljs-dark').disabled=false;}})()
+  </script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/build/highlight.min.js"></script>
   <style>
+    /* ── Accent color CSS variables ── */
+    :root { --ac: #1F4E79; --ac-h: #1a4268; }
+    html[data-color="forest"] { --ac: #166534; --ac-h: #14532d; }
+    html[data-color="violet"] { --ac: #5B21B6; --ac-h: #4c1d95; }
+    html[data-color="slate"]  { --ac: #334155; --ac-h: #1e293b; }
+    html[data-color="rose"]   { --ac: #9F1239; --ac-h: #881337; }
+
     body { font-family: 'Inter', sans-serif; }
     #chat-messages { scroll-behavior: smooth; }
     .msg-bubble { line-height: 1.65; }
@@ -22,10 +38,91 @@
     .msg-bubble pre code { background: none; padding: 0; }
     .dark .msg-bubble code { background: rgba(255,255,255,0.1); }
     .dark .msg-bubble pre { background: rgba(255,255,255,0.08); }
-    #sidebar { transition: transform 0.2s ease; }
+
+    /* ── Accent-colored elements ── */
+    .user-bubble { background-color: var(--ac) !important; }
+    .accent-btn { background-color: var(--ac) !important; }
+    .accent-btn:hover { background-color: var(--ac-h) !important; }
+    #sidebar { background-color: var(--ac) !important; transition: transform 0.2s ease; }
+    #conversation-title[title]:hover { color: var(--ac); }
+
     @media (max-width: 640px) {
       #sidebar.hidden-mobile { transform: translateX(-100%); }
     }
+    .conv-item .del-btn { opacity: 0; transition: opacity 0.15s; }
+    .conv-item:hover .del-btn { opacity: 1; }
+    .chat-bubble-row .copy-btn { opacity: 0; transition: opacity 0.15s; }
+    .chat-bubble-row:hover .copy-btn { opacity: 1; }
+
+    /* ── Typing dots ── */
+    .typing-indicator { display: flex; flex-direction: column; gap: 4px; }
+    .thinking-label { font-size: 10px; color: #94a3b8; font-style: italic; }
+    .dark .thinking-label { color: #6b7280; }
+    .typing-dots { display: inline-flex; gap: 4px; align-items: center; padding: 4px 2px; }
+    .typing-dots span { width: 7px; height: 7px; background: currentColor; border-radius: 50%; animation: tdot 1.2s ease-in-out infinite; opacity: 0.4; }
+    .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes tdot { 0%, 100% { transform: translateY(0); opacity: 0.4; } 50% { transform: translateY(-6px); opacity: 1; } }
+
+    /* ── Bubble animations ── */
+    @keyframes bubbleIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    .chat-bubble-row { animation: bubbleIn 0.2s ease forwards; }
+
+    #conversation-title { transition: color 0.15s; }
+    .chat-bubble-row .bubble-actions { opacity: 0; transition: opacity 0.15s; }
+    .chat-bubble-row:hover .bubble-actions { opacity: 1; }
+
+    /* ── Message timestamp ── */
+    .msg-timestamp { font-size: 9px; color: #94a3b8; opacity: 0; transition: opacity 0.15s; margin-top: 2px; }
+    .chat-bubble-row:hover .msg-timestamp { opacity: 1; }
+    .dark .msg-timestamp { color: #6b7280; }
+
+    /* ── Follow-up chips ── */
+    .followup-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
+    .followup-chip { font-size: 11px; padding: 3px 8px; border-radius: 99px; border: 1px solid #cbd5e1; color: #475569; background: white; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+    .dark .followup-chip { border-color: #374151; color: #9ca3af; background: #1f2937; }
+    .followup-chip:hover { border-color: var(--ac); color: var(--ac); background: #eff6ff; }
+    .dark .followup-chip:hover { border-color: #60a5fa; color: #60a5fa; background: #1e3a5f; }
+
+    /* ── Flashcard ── */
+    .flashcard { cursor: pointer; user-select: none; }
+    .flashcard-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+    .flashcard-progress { height: 3px; background: #e2e8f0; border-radius: 99px; overflow: hidden; margin-top: 8px; }
+    .dark .flashcard-progress { background: #374151; }
+    .flashcard-progress-bar { height: 100%; background: var(--ac); border-radius: 99px; transition: width 0.2s ease; }
+
+    /* ── Profile avatar ── */
+    .profile-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; background-color: var(--ac); color: white; flex-shrink: 0; }
+
+    /* ── Color swatches ── */
+    .color-swatch { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: all 0.15s; }
+    .color-swatch.active { border-color: white; box-shadow: 0 0 0 2px var(--ac); }
+
+    /* ── Code copy button ── */
+    .code-copy-btn { position: absolute; top: 6px; right: 6px; font-size: 10px; padding: 2px 8px; border-radius: 4px; background: rgba(0,0,0,0.18); color: rgba(255,255,255,0.85); border: none; cursor: pointer; transition: all 0.15s; font-family: inherit; }
+    .code-copy-btn:hover { background: rgba(0,0,0,0.35); }
+    .dark .code-copy-btn { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.7); }
+    .dark .code-copy-btn:hover { background: rgba(255,255,255,0.25); }
+
+    /* ── Continue banner ── */
+    .continue-banner { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #94a3b8; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 6px 12px; align-self: center; max-width: 420px; }
+    .dark .continue-banner { background: rgba(255,255,255,0.04); border-color: #374151; color: #6b7280; }
+
+    /* ── Note cards ── */
+    .note-card { cursor: pointer; transition: all 0.15s; }
+    .note-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .note-card .note-delete { opacity: 0; transition: opacity 0.15s; }
+    .note-card:hover .note-delete { opacity: 1; }
+    .dark .note-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+
+    /* ── Quiz option buttons ── */
+    .quiz-option { width: 100%; text-align: left; padding: 10px 14px; border-radius: 10px; border: 1.5px solid #e2e8f0; font-size: 13px; background: white; cursor: pointer; transition: all 0.15s; color: #334155; }
+    .dark .quiz-option { background: #374151; border-color: #4b5563; color: #e5e7eb; }
+    .quiz-option:hover:not(:disabled) { border-color: var(--ac); color: var(--ac); }
+    .quiz-option.correct { border-color: #16a34a !important; background: #f0fdf4 !important; color: #166534 !important; }
+    .dark .quiz-option.correct { background: #14532d !important; color: #86efac !important; border-color: #16a34a !important; }
+    .quiz-option.wrong { border-color: #dc2626 !important; background: #fef2f2 !important; color: #991b1b !important; }
+    .dark .quiz-option.wrong { background: #7f1d1d !important; color: #fca5a5 !important; border-color: #dc2626 !important; }
   </style>
 </head>
 <body class="h-screen flex overflow-hidden bg-slate-50 dark:bg-gray-900">
@@ -38,34 +135,108 @@
   <div id="settings-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="closeSettingsOnOverlay(event)">
     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-slate-200 dark:border-gray-700 w-full max-w-xs p-6">
       <div class="flex items-center justify-between mb-5">
-        <h2 class="text-base font-semibold text-slate-800 dark:text-gray-100">Podešavanja</h2>
+        <h2 class="text-base font-semibold text-slate-800 dark:text-gray-100" data-i18n="settings">Podešavanja</h2>
         <button onclick="closeSettings()" class="text-slate-400 hover:text-slate-600 dark:text-gray-500 dark:hover:text-gray-300 text-xl leading-none">×</button>
       </div>
-      <div>
-        <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-gray-400 mb-2">Tema</p>
+      <div class="mb-4">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-gray-400 mb-2" data-i18n="theme">Tema</p>
         <div class="flex gap-2">
           <button id="theme-light-btn" onclick="setTheme('light')"
             class="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border text-sm font-medium transition">
-            ☀️ Svetla
+            ☀️ <span data-i18n="themeLight">Svetla</span>
           </button>
           <button id="theme-dark-btn" onclick="setTheme('dark')"
             class="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border text-sm font-medium transition">
-            🌙 Tamna
+            🌙 <span data-i18n="themeDark">Tamna</span>
           </button>
+        </div>
+      </div>
+      <div class="mb-4">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-gray-400 mb-2" data-i18n="colorTheme">Boja</p>
+        <div class="flex gap-2" id="color-swatches">
+          <button class="color-swatch" data-color="navy"   style="background:#1F4E79" onclick="setColorTheme('navy')"   title="Navy"></button>
+          <button class="color-swatch" data-color="forest" style="background:#166534" onclick="setColorTheme('forest')" title="Forest"></button>
+          <button class="color-swatch" data-color="violet" style="background:#5B21B6" onclick="setColorTheme('violet')" title="Violet"></button>
+          <button class="color-swatch" data-color="slate"  style="background:#334155" onclick="setColorTheme('slate')"  title="Slate"></button>
+          <button class="color-swatch" data-color="rose"   style="background:#9F1239" onclick="setColorTheme('rose')"   title="Rose"></button>
+        </div>
+      </div>
+      <div class="mb-4">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-gray-400 mb-2" data-i18n="language">Jezik</p>
+        <div class="flex bg-slate-100 dark:bg-gray-700 rounded-lg overflow-hidden p-1 gap-1">
+          <button id="settings-lang-sr" onclick="setLanguage('sr')"
+            class="flex-1 py-1.5 text-xs font-semibold rounded-md transition">SRP</button>
+          <button id="settings-lang-en" onclick="setLanguage('en')"
+            class="flex-1 py-1.5 text-xs font-semibold rounded-md transition">ENG</button>
+        </div>
+      </div>
+      <div class="border-t border-slate-100 dark:border-gray-700 pt-4 mt-2">
+        <button onclick="signOut()" class="w-full flex items-center justify-center gap-2 py-2 rounded-lg border border-slate-200 dark:border-gray-600 text-sm font-medium text-slate-500 dark:text-gray-400 hover:text-red-500 hover:border-red-300 dark:hover:text-red-400 dark:hover:border-red-500 transition" id="btn-logout" data-i18n="logout">Odjava</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Flashcard modal -->
+  <div id="flashcard-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-slate-200 dark:border-gray-700 w-full max-w-sm">
+      <div class="flex items-center justify-between px-5 pt-5 pb-4 border-b border-slate-100 dark:border-gray-700">
+        <h2 class="text-sm font-semibold text-slate-800 dark:text-gray-100" data-i18n="flashcardTitle">Kartice za učenje</h2>
+        <div class="flex items-center gap-2">
+          <button onclick="closeFlashcardModal();generateFlashcards()" class="text-xs text-slate-400 dark:text-gray-500 hover:text-slate-600 dark:hover:text-gray-300 px-2 py-0.5 rounded hover:bg-slate-100 dark:hover:bg-gray-700 transition" data-i18n="regenerate">Ponovi</button>
+          <button onclick="closeFlashcardModal()" class="text-slate-400 hover:text-slate-600 dark:text-gray-500 dark:hover:text-gray-300 text-xl leading-none">×</button>
+        </div>
+      </div>
+      <div class="p-5">
+        <div id="flashcard-card" class="flashcard min-h-36 bg-slate-50 dark:bg-gray-700 rounded-xl flex flex-col items-center justify-center text-center p-5 border border-slate-200 dark:border-gray-600" onclick="flipCard()">
+          <p id="flashcard-label" class="flashcard-label text-[#1F4E79] dark:text-blue-400">PITANJE</p>
+          <p id="flashcard-content" class="text-sm text-slate-700 dark:text-gray-200 leading-relaxed"></p>
+        </div>
+        <p class="text-[10px] text-center text-slate-400 dark:text-gray-500 mt-2" data-i18n="flashcardHint">Klikni da obrneš</p>
+        <div class="flashcard-progress"><div id="flashcard-progress-bar" class="flashcard-progress-bar" style="width:0%"></div></div>
+        <div class="flex items-center justify-between mt-3">
+          <button onclick="prevCard()" class="w-9 h-9 flex items-center justify-center bg-slate-100 dark:bg-gray-700 hover:bg-slate-200 dark:hover:bg-gray-600 rounded-lg text-slate-600 dark:text-gray-300 transition text-sm font-bold">←</button>
+          <div class="flex items-center gap-2">
+            <span id="card-counter" class="text-xs text-slate-500 dark:text-gray-400">1 / 1</span>
+            <button onclick="shuffleCards()" class="text-xs text-slate-400 dark:text-gray-500 hover:text-slate-600 dark:hover:text-gray-300 px-2 py-0.5 rounded hover:bg-slate-100 dark:hover:bg-gray-700 transition" data-i18n="shuffleCards">Promeša</button>
+          </div>
+          <button onclick="nextCard()" class="w-9 h-9 flex items-center justify-center bg-slate-100 dark:bg-gray-700 hover:bg-slate-200 dark:hover:bg-gray-600 rounded-lg text-slate-600 dark:text-gray-300 transition text-sm font-bold">→</button>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- Scroll to bottom button -->
+  <button id="scroll-bottom-btn" onclick="scrollToBottom()"
+    class="hidden fixed bottom-32 right-4 z-10 w-9 h-9 bg-white dark:bg-gray-700 border border-slate-200 dark:border-gray-600 rounded-full shadow-lg flex items-center justify-center text-slate-500 dark:text-gray-300 hover:shadow-xl transition text-base">↓</button>
+
+  <!-- Name modal -->
+  <div id="name-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-slate-200 dark:border-gray-700 w-full max-w-xs p-6">
+      <div class="text-center mb-5">
+        <div class="text-3xl mb-3">👋</div>
+        <h2 class="text-base font-semibold text-slate-800 dark:text-gray-100" data-i18n="nameModalTitle">Kako ti je ime?</h2>
+        <p class="text-xs text-slate-500 dark:text-gray-400 mt-1" data-i18n="nameModalSubtitle">Koristićemo ga umesto tvoje email adrese.</p>
+      </div>
+      <input id="name-input" type="text" maxlength="30"
+        class="w-full border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-slate-800 dark:text-gray-100 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#1F4E79] focus:ring-2 focus:ring-[#1F4E79]/10 mb-3"
+        placeholder="Ana" onkeydown="if(event.key==='Enter') saveName()">
+      <button id="name-save-btn" onclick="saveName()"
+        class="accent-btn w-full text-white py-2 rounded-lg text-sm font-medium transition" data-i18n="nameModalBtn">
+        Hajde!
+      </button>
+    </div>
+  </div>
+
   <!-- Sidebar -->
   <aside id="sidebar"
-    class="fixed sm:relative z-30 sm:z-auto w-56 h-full bg-[#1F4E79] flex flex-col py-5 px-3.5 gap-2 shrink-0 -translate-x-full sm:translate-x-0">
+    class="fixed sm:relative z-30 sm:z-auto w-56 h-full flex flex-col py-5 px-3.5 gap-2 shrink-0 -translate-x-full sm:translate-x-0">
 
-    <!-- Brand -->
-    <div class="flex items-center gap-2 px-1 mb-2">
-      <div class="w-7 h-7 bg-blue-500 rounded-lg flex items-center justify-center text-sm shrink-0">📚</div>
+    <!-- Brand (click logo to close on mobile) -->
+    <div class="flex items-center gap-2 px-1 mb-1">
+      <div class="w-7 h-7 bg-blue-500 rounded-lg flex items-center justify-center text-sm shrink-0 cursor-pointer" onclick="closeSidebar()" title="Close">📚</div>
       <span class="text-white font-semibold text-sm">StudyBuddy</span>
-      <span class="text-blue-300 text-[10px] font-semibold tracking-wide">BETA</span>
+      <span class="text-blue-300 text-[10px] font-semibold tracking-wide flex-1">BETA</span>
+      <button onclick="closeSidebar()" class="sm:hidden text-white/40 hover:text-white transition text-base leading-none">←</button>
     </div>
 
     <!-- New chat -->
@@ -74,85 +245,108 @@
       ＋ <span id="btn-new-chat">Novi razgovor</span>
     </button>
 
-    <!-- History -->
-    <div id="history-section" class="hidden">
-      <p id="lbl-history" class="text-blue-300 text-[10px] font-semibold uppercase tracking-widest px-1 pt-2 pb-1">Istorija</p>
-      <div id="history-list" class="flex flex-col gap-0.5 max-h-40 overflow-y-auto"></div>
+    <!-- Subjects section -->
+    <div id="subjects-outer">
+      <div class="flex items-center justify-between px-1 pt-1 pb-1">
+        <p class="text-blue-300 text-[10px] font-semibold uppercase tracking-widest" data-i18n="subjectsSection">Predmeti</p>
+        <button onclick="openNewSubjectModal()" class="text-white/50 hover:text-white text-[10px] font-semibold transition" data-i18n="newSubjectBtn">+ Predmet</button>
+      </div>
+      <div id="subjects-list" class="flex flex-wrap gap-1 px-1"></div>
     </div>
 
-    <!-- Quick actions -->
-    <p id="lbl-quick-actions" class="text-blue-300 text-[10px] font-semibold uppercase tracking-widest px-1 pt-2 pb-1">Brze akcije</p>
-    <div id="quick-actions" class="flex flex-col gap-0.5">
-      <button onclick="insertTemplate('tplSummarize')" class="quick-action-btn flex items-center gap-2 px-2 py-1.5 rounded-lg text-white/85 hover:bg-white/10 text-sm text-left transition">📄 <span data-i18n="summarize">Sumiraj</span></button>
-      <button onclick="insertTemplate('tplExplain')" class="quick-action-btn flex items-center gap-2 px-2 py-1.5 rounded-lg text-white/85 hover:bg-white/10 text-sm text-left transition">💡 <span data-i18n="explain">Objasni</span></button>
-      <button onclick="insertTemplate('tplExamPrep')" class="quick-action-btn flex items-center gap-2 px-2 py-1.5 rounded-lg text-white/85 hover:bg-white/10 text-sm text-left transition">📝 <span data-i18n="examPrep">Priprema za ispit</span></button>
-      <button onclick="insertTemplate('tplEssay')" class="quick-action-btn flex items-center gap-2 px-2 py-1.5 rounded-lg text-white/85 hover:bg-white/10 text-sm text-left transition">✍️ <span data-i18n="essay">Seminarski</span></button>
-      <button onclick="insertTemplate('tplSolve')" class="quick-action-btn flex items-center gap-2 px-2 py-1.5 rounded-lg text-white/85 hover:bg-white/10 text-sm text-left transition">🔢 <span data-i18n="solve">Reši zadatak</span></button>
+    <!-- History -->
+    <div id="history-section" class="hidden flex-1 flex flex-col min-h-0">
+      <p id="lbl-history" class="text-blue-300 text-[10px] font-semibold uppercase tracking-widest px-1 pt-1 pb-1" data-i18n="history">Istorija</p>
+      <input id="history-search" type="text" placeholder="Pretraži istoriju..."
+        class="w-full bg-white/10 text-white text-xs placeholder-white/40 rounded-lg px-2 py-1 outline-none border border-white/10 focus:border-white/30 mb-1"
+        oninput="filterHistory(this.value)">
+      <div id="history-list" class="flex flex-col gap-0.5 overflow-y-auto flex-1"></div>
+    </div>
+
+    <!-- Groups section -->
+    <div id="groups-outer">
+      <div class="flex items-center justify-between px-1 pt-1 pb-1">
+        <p class="text-blue-300 text-[10px] font-semibold uppercase tracking-widest" data-i18n="groupsSection">Studijske grupe</p>
+        <button onclick="openCreateGroupModal()" class="text-white/50 hover:text-white text-[10px] font-semibold transition" data-i18n="newGroupBtn">+ Grupa</button>
+      </div>
+      <div id="groups-list" class="flex flex-col gap-0.5"></div>
     </div>
 
     <div class="flex-1"></div>
 
-    <!-- Language toggle -->
-    <div class="flex bg-white/10 rounded-lg overflow-hidden mb-2">
-      <button id="lang-sr" onclick="setLanguage('sr')"
-        class="flex-1 py-1.5 text-xs font-semibold text-white bg-white/20 rounded-md transition">SRP</button>
-      <button id="lang-en" onclick="setLanguage('en')"
-        class="flex-1 py-1.5 text-xs font-semibold text-white/60 transition">ENG</button>
-    </div>
+    <!-- Notes button -->
+    <button onclick="openNotes()"
+      class="flex items-center gap-2 bg-white/10 hover:bg-white/20 rounded-lg px-3 py-2 text-white/80 text-xs font-medium transition">
+      <span data-i18n="notesBtn">📝 Beleške</span>
+    </button>
 
     <!-- Disclaimer -->
     <p id="disclaimer" class="text-white/40 text-[10px] leading-relaxed px-1">
       Ne pišem gotove ispite ni seminarske radove.
     </p>
+
+    <!-- Profile (bottom-left avatar) -->
+    <div id="avatar-container" class="relative">
+      <div id="profile-avatar" class="profile-avatar cursor-pointer" onclick="toggleAvatarMenu()" title="" style="background:rgba(255,255,255,0.18);border:1.5px solid rgba(255,255,255,0.3)"></div>
+      <div id="avatar-dropdown" class="hidden absolute left-0 bottom-full mb-1.5 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl shadow-lg py-1.5 w-44 z-20">
+        <button onclick="openSettings();closeAvatarMenu()" class="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-gray-700 transition flex items-center gap-2">
+          ⚙️ <span data-i18n="settings">Podešavanja</span>
+        </button>
+      </div>
+    </div>
   </aside>
 
   <!-- Main -->
-  <div class="flex-1 flex flex-col min-w-0 h-full">
+  <div class="flex-1 flex flex-col min-w-0 h-full relative">
 
     <!-- Top bar -->
     <header class="flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-800 border-b border-slate-200 dark:border-gray-700 shrink-0">
       <div class="flex items-center gap-3">
         <button onclick="openSidebar()" class="sm:hidden text-slate-500 dark:text-gray-400 hover:text-slate-800 dark:hover:text-gray-100 text-lg">☰</button>
+        <button id="back-to-chat-btn" onclick="closeGroupView()" class="hidden text-xs text-slate-400 dark:text-gray-500 hover:text-slate-700 dark:hover:text-gray-200 transition" data-i18n="backToChat">← Nazad</button>
         <span id="conversation-title" class="text-sm font-medium text-slate-600 dark:text-gray-300">Novi razgovor</span>
       </div>
-      <div class="flex items-center gap-3">
-        <span id="user-email" class="text-xs text-slate-400 dark:text-gray-500 hidden sm:block"></span>
-        <button onclick="openSettings()" class="text-slate-400 dark:text-gray-500 hover:text-slate-600 dark:hover:text-gray-300 transition text-base" title="Podešavanja">⚙️</button>
-        <button onclick="signOut()" class="text-xs text-slate-500 dark:text-gray-400 hover:text-slate-800 dark:hover:text-gray-100 transition" id="btn-logout">Odjava</button>
+      <div id="group-header-actions" class="hidden flex items-center gap-2">
+        <button onclick="openGroupInfo()" class="text-xs text-slate-400 dark:text-gray-500 hover:text-slate-700 dark:hover:text-gray-200 px-2 py-1 rounded hover:bg-slate-100 dark:hover:bg-gray-700 transition" data-i18n="groupInfo">Informacije</button>
       </div>
     </header>
 
     <!-- Chat area -->
     <div id="chat-messages" class="flex-1 overflow-y-auto p-4 sm:p-6 flex flex-col gap-4">
 
-      <!-- Empty state (shown by default, hidden when there are messages) -->
-      <div id="empty-state" class="flex flex-col items-center justify-center flex-1 gap-6 text-center py-8">
+      <!-- Empty state -->
+      <div id="empty-state" class="flex flex-col items-center justify-center flex-1 gap-5 text-center py-8">
+        <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shadow-sm" style="background-color:var(--ac)">📚</div>
         <div>
           <p id="greeting" class="text-xl font-semibold text-slate-800 dark:text-gray-100">Zdravo! 👋</p>
-          <p id="greeting-subtitle" class="text-sm text-slate-500 dark:text-gray-400 mt-1 max-w-xs">
+          <p id="greeting-subtitle" class="text-sm text-slate-500 dark:text-gray-400 mt-1 max-w-xs mx-auto">
             Tvoj stariji kolega za učenje. Postavi pitanje ili odaberi početak:
           </p>
         </div>
         <div class="grid grid-cols-2 gap-2 w-full max-w-sm">
           <button onclick="insertTemplate('tplExplain')"
-            class="bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl p-3 text-left text-sm text-slate-700 dark:text-gray-200 hover:border-[#1F4E79] hover:shadow-sm transition">
-            <strong class="block text-[11px] text-[#1F4E79] dark:text-blue-400 font-semibold uppercase tracking-wide mb-1" data-i18n="explain">Objasni</strong>
-            <span data-i18n="starterExplain">Objasni mi pojam iz predavanja</span>
+            class="group bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl p-3.5 text-left text-sm text-slate-700 dark:text-gray-200 hover:shadow-md transition-all">
+            <span class="text-xl block mb-1.5">💡</span>
+            <strong class="block text-[11px] font-semibold uppercase tracking-wide mb-0.5" style="color:var(--ac)" data-i18n="explain">Objasni</strong>
+            <span class="text-xs text-slate-500 dark:text-gray-400" data-i18n="starterExplain">Objasni mi pojam iz predavanja</span>
           </button>
           <button onclick="insertTemplate('tplExamPrep')"
-            class="bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl p-3 text-left text-sm text-slate-700 dark:text-gray-200 hover:border-[#1F4E79] hover:shadow-sm transition">
-            <strong class="block text-[11px] text-[#1F4E79] dark:text-blue-400 font-semibold uppercase tracking-wide mb-1" data-i18n="examPrep">Priprema za ispit</strong>
-            <span data-i18n="starterExamQuestions">Napravi 10 pitanja za vežbu</span>
+            class="group bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl p-3.5 text-left text-sm text-slate-700 dark:text-gray-200 hover:shadow-md transition-all">
+            <span class="text-xl block mb-1.5">📝</span>
+            <strong class="block text-[11px] font-semibold uppercase tracking-wide mb-0.5" style="color:var(--ac)" data-i18n="examPrep">Priprema za ispit</strong>
+            <span class="text-xs text-slate-500 dark:text-gray-400" data-i18n="starterExamQuestions">Napravi 10 pitanja za vežbu</span>
           </button>
           <button onclick="insertTemplate('tplEssay')"
-            class="bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl p-3 text-left text-sm text-slate-700 dark:text-gray-200 hover:border-[#1F4E79] hover:shadow-sm transition">
-            <strong class="block text-[11px] text-[#1F4E79] dark:text-blue-400 font-semibold uppercase tracking-wide mb-1" data-i18n="essay">Seminarski</strong>
-            <span data-i18n="starterEssay">Pomozi mi da strukturišem seminarski</span>
+            class="group bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl p-3.5 text-left text-sm text-slate-700 dark:text-gray-200 hover:shadow-md transition-all">
+            <span class="text-xl block mb-1.5">✍️</span>
+            <strong class="block text-[11px] font-semibold uppercase tracking-wide mb-0.5" style="color:var(--ac)" data-i18n="essay">Seminarski</strong>
+            <span class="text-xs text-slate-500 dark:text-gray-400" data-i18n="starterEssay">Pomozi mi da strukturišem seminarski</span>
           </button>
           <button onclick="insertTemplate('tplSolve')"
-            class="bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl p-3 text-left text-sm text-slate-700 dark:text-gray-200 hover:border-[#1F4E79] hover:shadow-sm transition">
-            <strong class="block text-[11px] text-[#1F4E79] dark:text-blue-400 font-semibold uppercase tracking-wide mb-1" data-i18n="solve">Reši zadatak</strong>
-            <span data-i18n="starterSolve">Prođi korak po korak</span>
+            class="group bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl p-3.5 text-left text-sm text-slate-700 dark:text-gray-200 hover:shadow-md transition-all">
+            <span class="text-xl block mb-1.5">🔢</span>
+            <strong class="block text-[11px] font-semibold uppercase tracking-wide mb-0.5" style="color:var(--ac)" data-i18n="solve">Reši zadatak</strong>
+            <span class="text-xs text-slate-500 dark:text-gray-400" data-i18n="starterSolve">Prođi korak po korak</span>
           </button>
         </div>
       </div>
@@ -164,23 +358,246 @@
       <button onclick="removePdf()" class="ml-auto text-blue-500 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-200 text-xs font-medium" data-i18n="removePdf">Ukloni</button>
     </div>
 
+    <!-- Image preview bar -->
+    <div id="image-bar" class="hidden px-4 py-2 bg-slate-50 dark:bg-gray-700/50 border-t border-slate-100 dark:border-gray-600 flex items-center gap-2">
+      <img id="image-preview" src="" alt="" class="w-8 h-8 rounded-lg object-cover shrink-0">
+      <span id="image-name" class="text-xs text-slate-600 dark:text-gray-300 truncate flex-1"></span>
+      <button onclick="removeImage()" class="text-slate-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 text-xs font-medium transition" data-i18n="removeImage">Ukloni</button>
+    </div>
+
     <!-- Input bar -->
     <div class="px-4 py-3 bg-white dark:bg-gray-800 border-t border-slate-200 dark:border-gray-700 shrink-0">
+      <!-- Attach panel -->
+      <div id="attach-panel" class="hidden mb-2 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl shadow-lg py-1.5 overflow-hidden">
+        <input type="file" id="pdf-input" accept=".pdf" class="hidden" onchange="handlePdfSelect(event)">
+        <input type="file" id="image-input" accept="image/jpeg,image/png,image/gif,image/webp" class="hidden" onchange="handleImageSelect(event)">
+        <button onclick="document.getElementById('pdf-input').click();closeAttachPanel()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-gray-700 transition text-left">
+          📎 <span data-i18n="addFile">Dodaj fajl</span>
+        </button>
+        <button onclick="document.getElementById('image-input').click();closeAttachPanel()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-gray-700 transition text-left">
+          📷 <span data-i18n="addImage">Dodaj sliku</span>
+        </button>
+        <div id="attach-tools-section" class="hidden">
+          <div class="border-t border-slate-100 dark:border-gray-700 my-1"></div>
+          <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-gray-500 px-4 pt-1 pb-0.5" data-i18n="studyToolsLabel">Alati za učenje</p>
+          <button onclick="generateFlashcards();closeAttachPanel()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-gray-700 transition text-left" data-i18n="flashcardsBtn">🃏 Kartice</button>
+          <button onclick="generateQuiz();closeAttachPanel()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-gray-700 transition text-left" data-i18n="quizBtn">🧠 Kviz</button>
+          <button onclick="generateGlossary();closeAttachPanel()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-gray-700 transition text-left" data-i18n="glossaryBtn">📖 Pojmovi</button>
+          <div class="border-t border-slate-100 dark:border-gray-700 my-1"></div>
+          <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-gray-500 px-4 pt-1 pb-0.5" data-i18n="shareAndExport">Deli i izvezi</p>
+          <button onclick="generateSummary();closeAttachPanel()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-gray-700 transition text-left" data-i18n="summaryBtn">📋 Rezime</button>
+          <button onclick="shareConversation();closeAttachPanel()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-gray-700 transition text-left" data-i18n="shareBtn">🔗 Podeli razgovor</button>
+        </div>
+      </div>
       <div class="flex items-end gap-2 bg-slate-100 dark:bg-gray-700 border border-slate-200 dark:border-gray-600 rounded-xl px-3 py-2">
         <textarea id="message-input" rows="1"
           class="flex-1 bg-transparent border-none outline-none text-sm text-slate-800 dark:text-gray-100 placeholder-slate-400 dark:placeholder-gray-500 resize-none leading-relaxed max-h-32"
           placeholder="Postavi pitanje ili priloži PDF..."
           onkeydown="handleInputKeydown(event)"
           oninput="autoResize(this)"></textarea>
-        <input type="file" id="pdf-input" accept=".pdf" class="hidden" onchange="handlePdfSelect(event)">
-        <button onclick="document.getElementById('pdf-input').click()"
-          class="w-8 h-8 flex items-center justify-center text-slate-400 dark:text-gray-500 hover:text-slate-600 dark:hover:text-gray-300 rounded-lg transition shrink-0 text-base">📎</button>
+        <button onclick="toggleAttachPanel()" id="attach-btn"
+          class="w-8 h-8 flex items-center justify-center text-slate-400 dark:text-gray-500 hover:text-slate-600 dark:hover:text-gray-300 rounded-lg transition shrink-0 text-xl leading-none">＋</button>
         <button onclick="sendMessage()" id="send-btn"
-          class="w-8 h-8 flex items-center justify-center bg-[#1F4E79] text-white rounded-lg hover:bg-[#1a4268] transition shrink-0 font-bold text-sm">↑</button>
+          class="accent-btn w-8 h-8 flex items-center justify-center text-white rounded-lg transition shrink-0 font-bold text-sm">↑</button>
       </div>
       <p class="text-center text-[10px] text-slate-400 dark:text-gray-600 mt-1.5" id="footer-disclaimer">
         StudyBuddy može da greši. Uvek proveri važne informacije.
       </p>
+    </div>
+  </div>
+
+  <!-- Quiz modal -->
+  <div id="quiz-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-slate-200 dark:border-gray-700 w-full max-w-md">
+      <div class="flex items-center justify-between px-5 pt-5 pb-3 border-b border-slate-100 dark:border-gray-700">
+        <div class="flex items-center gap-2">
+          <h2 class="text-sm font-semibold text-slate-800 dark:text-gray-100" data-i18n="quizTitle">Kviz</h2>
+          <span id="quiz-progress-label" class="text-xs text-slate-400 dark:text-gray-500"></span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="closeQuizModal();generateQuiz()" class="text-xs text-slate-400 dark:text-gray-500 hover:text-slate-600 dark:hover:text-gray-300 px-2 py-0.5 rounded hover:bg-slate-100 dark:hover:bg-gray-700 transition" data-i18n="regenerate">Ponovi</button>
+          <button onclick="closeQuizModal()" class="text-slate-400 hover:text-slate-600 dark:text-gray-500 dark:hover:text-gray-300 text-xl leading-none">×</button>
+        </div>
+      </div>
+      <div class="px-5 pt-3">
+        <div class="h-1.5 bg-slate-100 dark:bg-gray-700 rounded-full overflow-hidden">
+          <div id="quiz-progress-bar" class="flashcard-progress-bar h-full" style="width:0%"></div>
+        </div>
+      </div>
+      <div class="p-5">
+        <div id="quiz-question-screen">
+          <p id="quiz-question" class="text-sm font-medium text-slate-800 dark:text-gray-100 mb-4 leading-relaxed"></p>
+          <div id="quiz-options" class="flex flex-col gap-2"></div>
+          <div id="quiz-explanation" class="hidden mt-3 p-3 rounded-lg text-xs leading-relaxed border"></div>
+          <button id="quiz-next-btn" onclick="quizNext()" class="hidden w-full mt-3 accent-btn text-white py-2 rounded-lg text-sm font-medium transition" data-i18n="quizNext">Dalje →</button>
+        </div>
+        <div id="quiz-result-screen" class="hidden text-center py-4">
+          <div class="text-4xl mb-3" id="quiz-result-emoji">🎉</div>
+          <p class="text-lg font-bold text-slate-800 dark:text-gray-100" id="quiz-score-text"></p>
+          <p class="text-sm text-slate-500 dark:text-gray-400 mt-1" id="quiz-score-sub"></p>
+          <button onclick="restartQuiz()" class="mt-4 accent-btn text-white px-6 py-2 rounded-lg text-sm font-medium transition" data-i18n="quizRestart">Ponovi kviz</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Glossary modal -->
+  <div id="glossary-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-slate-200 dark:border-gray-700 w-full max-w-sm">
+      <div class="flex items-center justify-between px-5 pt-5 pb-4 border-b border-slate-100 dark:border-gray-700">
+        <h2 class="text-sm font-semibold text-slate-800 dark:text-gray-100" data-i18n="glossaryTitle">Ključni pojmovi</h2>
+        <div class="flex items-center gap-2">
+          <button onclick="closeGlossaryModal();generateGlossary()" class="text-xs text-slate-400 dark:text-gray-500 hover:text-slate-600 dark:hover:text-gray-300 px-2 py-0.5 rounded hover:bg-slate-100 dark:hover:bg-gray-700 transition" data-i18n="regenerate">Ponovi</button>
+          <button onclick="closeGlossaryModal()" class="text-slate-400 hover:text-slate-600 dark:text-gray-500 dark:hover:text-gray-300 text-xl leading-none">×</button>
+        </div>
+      </div>
+      <div id="glossary-list" class="p-4 max-h-[70vh] overflow-y-auto flex flex-col gap-3"></div>
+    </div>
+  </div>
+
+  <!-- Summary modal -->
+  <div id="summary-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-slate-200 dark:border-gray-700 w-full max-w-md">
+      <div class="flex items-center justify-between px-5 pt-5 pb-4 border-b border-slate-100 dark:border-gray-700">
+        <h2 class="text-sm font-semibold text-slate-800 dark:text-gray-100" data-i18n="summaryTitle">Rezime razgovora</h2>
+        <div class="flex items-center gap-2">
+          <button onclick="closeSummaryModal();generateSummary()" class="text-xs text-slate-400 dark:text-gray-500 hover:text-slate-600 dark:hover:text-gray-300 px-2 py-0.5 rounded hover:bg-slate-100 dark:hover:bg-gray-700 transition" data-i18n="regenerate">Ponovi</button>
+          <button onclick="printSummary()" class="text-xs text-slate-400 dark:text-gray-500 hover:text-slate-600 dark:hover:text-gray-300 px-2 py-0.5 rounded hover:bg-slate-100 dark:hover:bg-gray-700 transition" data-i18n="summaryPrint">🖨 Štampaj</button>
+          <button onclick="closeSummaryModal()" class="text-slate-400 hover:text-slate-600 dark:text-gray-500 dark:hover:text-gray-300 text-xl leading-none">×</button>
+        </div>
+      </div>
+      <div id="summary-content" class="p-5 max-h-[70vh] overflow-y-auto"></div>
+    </div>
+  </div>
+
+  <!-- Notes modal -->
+  <div id="notes-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-slate-200 dark:border-gray-700 w-full max-w-lg flex flex-col" style="max-height:85vh">
+      <div class="flex items-center justify-between px-5 pt-5 pb-4 border-b border-slate-100 dark:border-gray-700 shrink-0">
+        <div class="flex items-center gap-2">
+          <button id="notes-back-btn" onclick="notesShowList()" class="hidden text-slate-400 hover:text-slate-600 dark:text-gray-500 dark:hover:text-gray-300 text-sm transition">←</button>
+          <h2 class="text-sm font-semibold text-slate-800 dark:text-gray-100" data-i18n="notesTitle">Beleške</h2>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="notes-new-btn" onclick="createNewNote()" class="text-xs accent-btn text-white px-3 py-1.5 rounded-lg transition" data-i18n="newNote">Nova beleška</button>
+          <button onclick="closeNotes()" class="text-slate-400 hover:text-slate-600 dark:text-gray-500 dark:hover:text-gray-300 text-xl leading-none">×</button>
+        </div>
+      </div>
+      <!-- List view -->
+      <div id="notes-list-view" class="flex-1 overflow-y-auto p-4">
+        <div id="notes-cards" class="grid grid-cols-2 gap-3"></div>
+        <p id="notes-empty" class="hidden text-center text-sm text-slate-400 dark:text-gray-500 py-10">Još nema beleški. Klikni "Nova beleška".</p>
+      </div>
+      <!-- Edit view -->
+      <div id="note-edit-view" class="hidden flex-1 flex flex-col p-4 gap-3 min-h-0">
+        <input id="note-title-input" type="text" maxlength="80"
+          class="w-full bg-transparent border-b border-slate-200 dark:border-gray-600 outline-none text-sm font-semibold text-slate-800 dark:text-gray-100 placeholder-slate-400 pb-2"
+          placeholder="Naslov beleške..." oninput="scheduleNoteSave()">
+        <textarea id="note-content-input"
+          class="flex-1 w-full bg-transparent border-none outline-none text-sm text-slate-700 dark:text-gray-200 placeholder-slate-400 resize-none leading-relaxed"
+          style="min-height:200px"
+          placeholder="Piši beleške ovde..." oninput="scheduleNoteSave()"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- New subject modal -->
+  <div id="new-subject-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-slate-200 dark:border-gray-700 w-full max-w-xs p-6">
+      <h2 class="text-sm font-semibold text-slate-800 dark:text-gray-100 mb-4" data-i18n="createSubject">Kreiraj predmet</h2>
+      <input id="new-subject-input" type="text" maxlength="40"
+        class="w-full border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-slate-800 dark:text-gray-100 rounded-lg px-3 py-2 text-sm outline-none focus:border-[var(--ac)] mb-3"
+        placeholder="npr. Matematika" onkeydown="if(event.key==='Enter') saveNewSubject()">
+      <div class="flex gap-2">
+        <button onclick="saveNewSubject()" class="flex-1 accent-btn text-white py-2 rounded-lg text-sm font-medium transition" data-i18n="addSubjectBtn">Dodaj</button>
+        <button onclick="closeNewSubjectModal()" class="px-4 py-2 rounded-lg text-sm font-medium border border-slate-200 dark:border-gray-600 text-slate-500 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-gray-700 transition">✕</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Move to subject modal -->
+  <div id="move-subject-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-slate-200 dark:border-gray-700 w-full max-w-xs p-5">
+      <h2 class="text-sm font-semibold text-slate-800 dark:text-gray-100 mb-3" data-i18n="moveToSubject">Premesti u predmet</h2>
+      <div id="subject-pick-list" class="flex flex-col gap-1.5 mb-3 max-h-56 overflow-y-auto"></div>
+      <button onclick="closeMoveSubjectModal()" class="w-full py-2 rounded-lg text-sm border border-slate-200 dark:border-gray-600 text-slate-500 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-gray-700 transition">✕</button>
+    </div>
+  </div>
+
+  <!-- Group chat view (replaces main chat when viewing a group) -->
+  <div id="group-chat-view" class="hidden absolute inset-0 flex flex-col bg-slate-50 dark:bg-gray-900" style="z-index:5">
+    <div id="group-messages" class="flex-1 overflow-y-auto p-4 sm:p-6 flex flex-col gap-3"></div>
+    <div class="px-4 py-3 bg-white dark:bg-gray-800 border-t border-slate-200 dark:border-gray-700 shrink-0">
+      <div class="flex items-end gap-2 bg-slate-100 dark:bg-gray-700 border border-slate-200 dark:border-gray-600 rounded-xl px-3 py-2">
+        <textarea id="group-input" rows="1"
+          class="flex-1 bg-transparent border-none outline-none text-sm text-slate-800 dark:text-gray-100 placeholder-slate-400 dark:placeholder-gray-500 resize-none leading-relaxed max-h-32"
+          onkeydown="handleGroupInputKeydown(event)" oninput="autoResize(this)"></textarea>
+        <button onclick="sendGroupMessage()" class="accent-btn w-8 h-8 flex items-center justify-center text-white rounded-lg transition shrink-0 font-bold text-sm">↑</button>
+      </div>
+      <p class="text-center text-[10px] text-slate-400 dark:text-gray-600 mt-1.5" data-i18n="aiHint">Upiši @AI da uključiš asistenta</p>
+    </div>
+  </div>
+
+  <!-- Share modal -->
+  <div id="share-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target===this)closeShareModal()">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-slate-200 dark:border-gray-700 w-full max-w-sm p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-base font-semibold text-slate-800 dark:text-gray-100" data-i18n="shareTitle">Podeli razgovor</h2>
+        <button onclick="closeShareModal()" class="text-slate-400 hover:text-slate-600 dark:text-gray-500 dark:hover:text-gray-300 text-xl leading-none">×</button>
+      </div>
+      <p class="text-xs text-slate-500 dark:text-gray-400 mb-4" data-i18n="shareDesc">Svaki registrovani korisnik sa linkom može da vidi ovaj razgovor.</p>
+      <div class="flex gap-2 mb-4">
+        <input id="share-link-input" type="text" readonly class="flex-1 text-xs bg-slate-50 dark:bg-gray-700 border border-slate-200 dark:border-gray-600 rounded-lg px-3 py-2 text-slate-600 dark:text-gray-300 outline-none" placeholder="Generisanje linka...">
+        <button onclick="copyShareLink()" class="shrink-0 accent-btn text-white text-xs px-3 py-2 rounded-lg transition" data-i18n="copyLink">Kopiraj link</button>
+      </div>
+      <button onclick="revokeShare()" class="w-full text-xs text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 py-2 rounded-lg transition" data-i18n="revokeShare">Poništi deljenje</button>
+    </div>
+  </div>
+
+  <!-- Create group modal -->
+  <div id="create-group-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target===this)closeCreateGroupModal()">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-slate-200 dark:border-gray-700 w-full max-w-xs p-6">
+      <h2 class="text-base font-semibold text-slate-800 dark:text-gray-100 mb-4" data-i18n="createGroupTitle">Nova studijska grupa</h2>
+      <label class="text-xs font-medium text-slate-500 dark:text-gray-400 mb-1 block" data-i18n="groupNameLabel">Naziv grupe</label>
+      <input id="group-name-input" type="text" maxlength="60"
+        class="w-full border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-slate-800 dark:text-gray-100 rounded-lg px-3 py-2 text-sm outline-none focus:border-[var(--ac)] mb-4"
+        placeholder="npr. Matematika 2025"
+        onkeydown="if(event.key==='Enter') createGroup()">
+      <div class="flex gap-2">
+        <button onclick="createGroup()" class="flex-1 accent-btn text-white py-2 rounded-lg text-sm font-medium transition" data-i18n="createGroupBtn">Kreiraj</button>
+        <button onclick="closeCreateGroupModal()" class="px-4 py-2 rounded-lg text-sm border border-slate-200 dark:border-gray-600 text-slate-500 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-gray-700 transition">✕</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Invite member modal -->
+  <div id="invite-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target===this)closeInviteModal()">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-slate-200 dark:border-gray-700 w-full max-w-xs p-6">
+      <h2 class="text-base font-semibold text-slate-800 dark:text-gray-100 mb-4" data-i18n="inviteTitle">Pozovi člana</h2>
+      <label class="text-xs font-medium text-slate-500 dark:text-gray-400 mb-1 block" data-i18n="inviteEmailLabel">Email adresa</label>
+      <input id="invite-email-input" type="email" maxlength="120"
+        class="w-full border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-slate-800 dark:text-gray-100 rounded-lg px-3 py-2 text-sm outline-none focus:border-[var(--ac)] mb-3"
+        placeholder="student@email.com"
+        onkeydown="if(event.key==='Enter') inviteMember()">
+      <p id="invite-error" class="hidden text-xs text-red-500 mb-3"></p>
+      <div class="flex gap-2">
+        <button id="invite-btn" onclick="inviteMember()" class="flex-1 accent-btn text-white py-2 rounded-lg text-sm font-medium transition" data-i18n="inviteBtn">Pozovi</button>
+        <button onclick="closeInviteModal()" class="px-4 py-2 rounded-lg text-sm border border-slate-200 dark:border-gray-600 text-slate-500 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-gray-700 transition">✕</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Group info modal -->
+  <div id="group-info-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target===this)closeGroupInfoModal()">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-slate-200 dark:border-gray-700 w-full max-w-xs p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 id="group-info-title" class="text-base font-semibold text-slate-800 dark:text-gray-100"></h2>
+        <button onclick="closeGroupInfoModal()" class="text-slate-400 hover:text-slate-600 text-xl leading-none">×</button>
+      </div>
+      <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-gray-500 mb-2" data-i18n="groupMembers">Članovi</p>
+      <div id="group-info-members" class="flex flex-col gap-1.5 mb-4 max-h-48 overflow-y-auto"></div>
+      <button onclick="openInviteModal();closeGroupInfoModal()" class="w-full accent-btn text-white py-2 rounded-lg text-sm font-medium transition mb-2" data-i18n="inviteTitle">Pozovi člana</button>
+      <button onclick="leaveGroup()" class="w-full text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 py-2 rounded-lg transition" data-i18n="leaveGroup">Napusti grupu</button>
     </div>
   </div>
 

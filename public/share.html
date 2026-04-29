@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyBuddy – Deljeni razgovor</title>
+  <script>tailwind={theme:{extend:{}}}</script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={darkMode:'class'}</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .prose-msg h1,.prose-msg h2,.prose-msg h3 { font-weight:600; margin-top:0.75em; margin-bottom:0.25em; }
+    .prose-msg p { margin-bottom:0.5em; }
+    .prose-msg ul,.prose-msg ol { padding-left:1.25em; margin-bottom:0.5em; }
+    .prose-msg code { background:rgba(0,0,0,.07); border-radius:4px; padding:1px 4px; font-size:.85em; }
+    .prose-msg pre { background:rgba(0,0,0,.06); border-radius:8px; padding:0.75em 1em; overflow-x:auto; margin-bottom:0.5em; }
+    .prose-msg pre code { background:none; padding:0; }
+    .dark .prose-msg code { background:rgba(255,255,255,.1); }
+    .dark .prose-msg pre { background:rgba(255,255,255,.05); }
+  </style>
+</head>
+<body class="bg-slate-50 dark:bg-gray-900 min-h-screen text-slate-800 dark:text-gray-100">
+  <div id="loading" class="flex flex-col items-center justify-center min-h-screen gap-4">
+    <div class="w-10 h-10 rounded-2xl flex items-center justify-center text-xl shadow-sm bg-indigo-500">📚</div>
+    <p class="text-sm text-slate-500 dark:text-gray-400" id="loading-msg">Učitavanje razgovora...</p>
+  </div>
+
+  <div id="app" class="hidden max-w-2xl mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-9 h-9 rounded-xl flex items-center justify-center text-lg bg-indigo-500 shrink-0">📚</div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 dark:text-gray-500 uppercase tracking-wider">StudyBuddy</p>
+        <h1 id="conv-title" class="text-base font-semibold text-slate-800 dark:text-gray-100"></h1>
+      </div>
+      <button id="fork-btn" onclick="forkConversation()"
+        class="ml-auto shrink-0 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-semibold px-4 py-2 rounded-xl transition">
+        Nastavi u svom chatu →
+      </button>
+    </div>
+
+    <!-- Messages -->
+    <div id="messages" class="flex flex-col gap-4"></div>
+
+    <!-- Footer -->
+    <div class="mt-8 text-center text-xs text-slate-400 dark:text-gray-600">
+      Razgovor podelio/la putem <a href="/" class="underline hover:text-indigo-500">StudyBuddy</a>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/i18n.js"></script>
+  <script src="/js/auth.js"></script>
+  <script>
+    let shareToken = null
+    let convData = null
+
+    async function init() {
+      const params = new URLSearchParams(location.search)
+      shareToken = params.get('t')
+      if (!shareToken) {
+        showError('Link nije ispravan.')
+        return
+      }
+
+      const session = await requireSession()
+      if (!session) return
+
+      const token = getAccessToken()
+      const res = await fetch(`/api/share/${shareToken}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (!res.ok) {
+        showError('Razgovor nije pronađen ili je deljenje poništeno.')
+        return
+      }
+      convData = await res.json()
+
+      document.getElementById('conv-title').textContent = convData.conversation.title || 'Razgovor'
+      document.title = `${convData.conversation.title || 'Razgovor'} – StudyBuddy`
+      renderMessages(convData.messages || [])
+
+      document.getElementById('loading').classList.add('hidden')
+      document.getElementById('app').classList.remove('hidden')
+    }
+
+    function renderMessages(messages) {
+      const container = document.getElementById('messages')
+      messages.forEach(m => {
+        if (m.role === 'assistant' && typeof m.content === 'string' && m.content.startsWith('{"__tool__":')) return
+        const isUser = m.role === 'user'
+        const wrapper = document.createElement('div')
+        wrapper.className = `flex ${isUser ? 'justify-end' : 'justify-start'}`
+        const bubble = document.createElement('div')
+        bubble.className = `max-w-[85%] px-4 py-3 rounded-2xl text-sm leading-relaxed prose-msg ${
+          isUser
+            ? 'bg-indigo-500 text-white'
+            : 'bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-800 dark:text-gray-100'
+        }`
+        if (isUser) {
+          bubble.textContent = m.content
+        } else {
+          bubble.innerHTML = marked.parse(m.content || '')
+        }
+        wrapper.appendChild(bubble)
+        container.appendChild(wrapper)
+      })
+    }
+
+    async function forkConversation() {
+      const btn = document.getElementById('fork-btn')
+      btn.disabled = true
+      btn.textContent = 'Kopiranje...'
+      const token = getAccessToken()
+      const res = await fetch(`/api/share/${shareToken}/fork`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (!res.ok) {
+        btn.disabled = false
+        btn.textContent = 'Nastavi u svom chatu →'
+        alert('Greška pri kopiranju razgovora.')
+        return
+      }
+      const { conversationId } = await res.json()
+      location.href = `/?conv=${conversationId}`
+    }
+
+    function showError(msg) {
+      document.getElementById('loading-msg').textContent = msg
+    }
+
+    init()
+  </script>
+</body>
+</html>

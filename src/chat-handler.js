@@ -10,12 +10,13 @@ LANGUAGE
 - Use authentic Serbian academic terminology: ispit, kolokvijum, seminarski rad, skripta, ispitni rok, ESPB, prijemni, apsolvent.
 
 WHAT YOU HELP WITH
-1. Explain lectures, concepts, and theories in plain language.
-2. Summarize PDFs, skripte, and books (ask whether the student wants 1-page, chapter-by-chapter, or detailed).
-3. Create exam prep: short notes, key formulas, 10 practice questions with step-by-step answers.
-4. Help with seminarski and diplomski radovi: outline, structure, citations (APA / MLA / Harvard), grammar review.
-5. Walk through calculations step by step.
-6. Answer course-specific questions when the student has uploaded their own materials.
+1. Explain lectures, concepts, and theories in plain language — including mathematics, physics, chemistry, biology, economics, law, history, literature, and all other university subjects.
+2. Help with computer science, programming, algorithms, data structures, software engineering, databases, networking, and IT topics. Explain code, debug errors, walk through algorithms step by step, and help understand technical concepts.
+3. Summarize PDFs, skripte, and books (ask whether the student wants 1-page, chapter-by-chapter, or detailed).
+4. Create exam prep: short notes, key formulas, 10 practice questions with step-by-step answers.
+5. Help with seminarski and diplomski radovi: outline, structure, citations (APA / MLA / Harvard), grammar review.
+6. Walk through calculations and programming exercises step by step.
+7. Answer course-specific questions when the student has uploaded their own materials.
 
 ACADEMIC INTEGRITY
 - Never write a finished exam answer, seminarski, or diplomski that the student will submit as their own.
@@ -38,23 +39,20 @@ function validateRequest(body) {
   return null
 }
 
-function buildMessages(messages, pdfBase64) {
-  if (!pdfBase64) return messages
+function buildMessages(messages, pdfBase64, imageBase64, imageMediaType) {
+  const clean = messages.map(m => ({ role: m.role, content: m.content }))
 
-  // Find the last user message and attach the PDF to it
-  const result = messages.map((m, i) => {
-    const isLastUser = m.role === 'user' && !messages.slice(i + 1).some(x => x.role === 'user')
+  if (!pdfBase64 && !imageBase64) return clean
+
+  return clean.map((m, i) => {
+    const isLastUser = m.role === 'user' && !clean.slice(i + 1).some(x => x.role === 'user')
     if (!isLastUser) return m
-    return {
-      role: 'user',
-      content: [
-        { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: pdfBase64 } },
-        { type: 'text', text: m.content }
-      ]
-    }
+    const parts = []
+    if (pdfBase64) parts.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: pdfBase64 } })
+    if (imageBase64) parts.push({ type: 'image', source: { type: 'base64', media_type: imageMediaType || 'image/jpeg', data: imageBase64 } })
+    parts.push({ type: 'text', text: m.content })
+    return { role: 'user', content: parts }
   })
-
-  return result
 }
 
 async function handleChat(req, res, anthropicClient) {
@@ -63,9 +61,10 @@ async function handleChat(req, res, anthropicClient) {
     return res.status(400).json({ error: validationError })
   }
 
-  const { messages, language, pdf } = req.body
+  const { messages, language, pdf, image, imageType } = req.body
   const client = anthropicClient || new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-  const anthropicMessages = buildMessages(messages, pdf || null)
+  const recentMessages = messages.slice(-20)
+  const anthropicMessages = buildMessages(recentMessages, pdf || null, image || null, imageType || null)
 
   res.setHeader('Content-Type', 'text/event-stream')
   res.setHeader('Cache-Control', 'no-cache')
@@ -73,8 +72,8 @@ async function handleChat(req, res, anthropicClient) {
 
   try {
     const stream = client.messages.stream({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 4096,
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 2048,
       system: SYSTEM_PROMPT,
       messages: anthropicMessages
     })

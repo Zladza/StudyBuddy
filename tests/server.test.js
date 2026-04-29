@@ -42,3 +42,10 @@ test('GET /api/history/some-id returns 401 without token', async () => {
   const res = await request(app).get('/api/history/some-id')
   expect(res.status).toBe(401)
 })
+
+test('POST /api/chat returns 401 without token', async () => {
+  const res = await request(app)
+    .post('/api/chat')
+    .send({ messages: [], language: 'sr' })
+  expect(res.status).toBe(401)
+})

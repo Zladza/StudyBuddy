@@ -3,90 +3,185 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>StudyBuddy — Prijava</title>
+  <title>StudyBuddy</title>
   <script>(function(){const t=localStorage.getItem('sb-theme')||'light';if(t==='dark')document.documentElement.classList.add('dark')})()</script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config={darkMode:'class'}</script>
+  <script>tailwind.config = { darkMode: 'class' }</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <style> body { font-family: 'Inter', sans-serif; } </style>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .accent-panel { background: #1F4E79; }
+    .feature-item { display: flex; align-items: flex-start; gap: 10px; }
+  </style>
 </head>
-<body class="min-h-screen bg-slate-50 dark:bg-gray-900 flex items-center justify-center p-4">
+<body class="min-h-screen bg-slate-50 dark:bg-gray-900 flex">
 
-  <!-- Theme toggle -->
-  <button onclick="toggleTheme()" id="theme-btn"
-    class="fixed top-4 right-4 w-9 h-9 rounded-full bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 flex items-center justify-center text-base shadow-sm hover:shadow-md transition">
-  </button>
+  <!-- Left panel (hidden on small screens) -->
+  <div class="hidden lg:flex accent-panel w-96 min-h-screen flex-col justify-between p-10 shrink-0">
+    <div>
+      <!-- Logo -->
+      <div class="flex items-center gap-2.5 mb-12">
+        <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-xl">📚</div>
+        <div>
+          <span class="text-white font-bold text-lg leading-none">StudyBuddy</span>
+          <span class="block text-blue-300 text-[10px] font-semibold tracking-widest uppercase">BETA</span>
+        </div>
+      </div>
 
-  <div class="w-full max-w-sm">
-    <!-- Brand -->
-    <div class="text-center mb-8">
-      <div class="inline-flex items-center gap-2 mb-2">
-        <div class="w-9 h-9 bg-blue-500 rounded-lg flex items-center justify-center text-white text-lg">📚</div>
-        <span class="text-xl font-semibold text-slate-800 dark:text-gray-100">StudyBuddy</span>
-        <span class="text-xs font-semibold text-blue-500 bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded-full">BETA</span>
+      <!-- Tagline -->
+      <h1 class="text-white text-2xl font-bold leading-snug mb-3">
+        Tvoj AI kolega<br>za učenje.
+      </h1>
+      <p class="text-blue-200 text-sm leading-relaxed mb-10">
+        Postavljaj pitanja, spremi se za ispite i razumi gradivo brže nego ikad.
+      </p>
+
+      <!-- Features -->
+      <div class="flex flex-col gap-5">
+        <div class="feature-item">
+          <span class="text-xl mt-0.5">🧠</span>
+          <div>
+            <p class="text-white text-sm font-semibold">Kviz i kartice</p>
+            <p class="text-blue-300 text-xs mt-0.5 leading-relaxed">AI pravi testove i kartice iz tvojih materijala</p>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="text-xl mt-0.5">📄</span>
+          <div>
+            <p class="text-white text-sm font-semibold">Upload PDF skripte</p>
+            <p class="text-blue-300 text-xs mt-0.5 leading-relaxed">Priloži bilo koji dokument i pitaj šta god hoćeš</p>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="text-xl mt-0.5">📋</span>
+          <div>
+            <p class="text-white text-sm font-semibold">Rezimei i pojmovnik</p>
+            <p class="text-blue-300 text-xs mt-0.5 leading-relaxed">Jednim klikom dobij strukturirani rezime razgovora</p>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="text-xl mt-0.5">💬</span>
+          <div>
+            <p class="text-white text-sm font-semibold">Istorija razgovora</p>
+            <p class="text-blue-300 text-xs mt-0.5 leading-relaxed">Sve konverzacije sačuvane, nastavi gde si stao</p>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Card -->
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-slate-200 dark:border-gray-700 p-6">
-      <!-- Tabs -->
-      <div class="flex mb-6 bg-slate-100 dark:bg-gray-700 rounded-lg p-1">
-        <button id="tab-login" onclick="showTab('login')"
-          class="flex-1 py-1.5 text-sm font-medium rounded-md bg-white dark:bg-gray-600 shadow-sm text-slate-800 dark:text-gray-100 transition">
-          Prijava
-        </button>
-        <button id="tab-register" onclick="showTab('register')"
-          class="flex-1 py-1.5 text-sm font-medium rounded-md text-slate-500 dark:text-gray-400 transition">
-          Registracija
-        </button>
+    <p class="text-blue-400 text-xs">Napravljen za studente u Srbiji 🇷🇸</p>
+  </div>
+
+  <!-- Right panel -->
+  <div class="flex-1 flex flex-col items-center justify-center p-6 relative">
+
+    <!-- Theme toggle -->
+    <button onclick="toggleTheme()" id="theme-btn"
+      class="absolute top-4 right-4 w-9 h-9 rounded-full bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 flex items-center justify-center text-base shadow-sm hover:shadow-md transition">
+    </button>
+
+    <!-- Mobile brand (visible only on small screens) -->
+    <div class="flex lg:hidden items-center gap-2 mb-8">
+      <div class="w-9 h-9 rounded-xl flex items-center justify-center text-lg" style="background:#1F4E79">📚</div>
+      <span class="text-slate-800 dark:text-gray-100 font-bold text-lg">StudyBuddy</span>
+      <span class="text-[10px] font-semibold text-blue-500 bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded-full">BETA</span>
+    </div>
+
+    <div class="w-full max-w-sm">
+      <div class="text-center mb-6 lg:text-left">
+        <h2 class="text-xl font-bold text-slate-800 dark:text-gray-100">Dobrodošao nazad 👋</h2>
+        <p class="text-sm text-slate-500 dark:text-gray-400 mt-1">Prijavi se ili napravi novi nalog</p>
       </div>
 
-      <!-- Login form -->
-      <form id="form-login" onsubmit="handleLogin(event)" class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-slate-700 dark:text-gray-200 mb-1">Email</label>
-          <input id="login-email" type="email" required
-            class="w-full border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-slate-800 dark:text-gray-100 placeholder-slate-400 dark:placeholder-gray-500 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#1F4E79] focus:ring-2 focus:ring-[#1F4E79]/10"
-            placeholder="ana@etf.rs">
+      <!-- Card -->
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-slate-200 dark:border-gray-700 p-6">
+        <!-- Tabs -->
+        <div class="flex mb-6 bg-slate-100 dark:bg-gray-700 rounded-lg p-1">
+          <button id="tab-login" onclick="showTab('login')"
+            class="flex-1 py-1.5 text-sm font-medium rounded-md bg-white dark:bg-gray-600 shadow-sm text-slate-800 dark:text-gray-100 transition">
+            Prijava
+          </button>
+          <button id="tab-register" onclick="showTab('register')"
+            class="flex-1 py-1.5 text-sm font-medium rounded-md text-slate-500 dark:text-gray-400 transition">
+            Registracija
+          </button>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-slate-700 dark:text-gray-200 mb-1">Lozinka</label>
-          <input id="login-password" type="password" required
-            class="w-full border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-slate-800 dark:text-gray-100 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#1F4E79] focus:ring-2 focus:ring-[#1F4E79]/10">
-        </div>
-        <p id="login-error" class="text-red-500 text-sm hidden"></p>
-        <button type="submit" id="login-btn"
-          class="w-full bg-[#1F4E79] text-white py-2 rounded-lg text-sm font-medium hover:bg-[#1a4268] transition">
-          Prijavi se
-        </button>
-      </form>
 
-      <!-- Register form -->
-      <form id="form-register" onsubmit="handleRegister(event)" class="space-y-4 hidden">
-        <div>
-          <label class="block text-sm font-medium text-slate-700 dark:text-gray-200 mb-1">Email</label>
-          <input id="reg-email" type="email" required
-            class="w-full border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-slate-800 dark:text-gray-100 placeholder-slate-400 dark:placeholder-gray-500 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#1F4E79] focus:ring-2 focus:ring-[#1F4E79]/10"
-            placeholder="ana@etf.rs">
+        <!-- Login form -->
+        <form id="form-login" onsubmit="handleLogin(event)" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-gray-200 mb-1">Email</label>
+            <input id="login-email" type="email" required autocomplete="email"
+              class="w-full border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-slate-800 dark:text-gray-100 placeholder-slate-400 dark:placeholder-gray-500 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#1F4E79] focus:ring-2 focus:ring-[#1F4E79]/10 transition"
+              placeholder="ana@etf.rs">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-gray-200 mb-1">Lozinka</label>
+            <input id="login-password" type="password" required autocomplete="current-password"
+              class="w-full border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-slate-800 dark:text-gray-100 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#1F4E79] focus:ring-2 focus:ring-[#1F4E79]/10 transition">
+          </div>
+          <p id="login-error" class="text-red-500 text-sm hidden"></p>
+          <button type="submit" id="login-btn"
+            class="w-full text-white py-2.5 rounded-lg text-sm font-semibold transition" style="background:#1F4E79">
+            Prijavi se
+          </button>
+          <button type="button" onclick="showForgotPassword()"
+            class="w-full text-xs text-slate-400 dark:text-gray-500 hover:text-slate-600 dark:hover:text-gray-300 transition text-center pt-1">
+            Zaboravio/la si lozinku?
+          </button>
+        </form>
+
+        <!-- Forgot password form -->
+        <div id="form-forgot" class="hidden space-y-4">
+          <div class="text-center mb-2">
+            <p class="text-sm font-medium text-slate-700 dark:text-gray-200">Resetuj lozinku</p>
+            <p class="text-xs text-slate-400 dark:text-gray-500 mt-1">Unesite email i poslaćemo ti link.</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-gray-200 mb-1">Email</label>
+            <input id="forgot-email" type="email" required autocomplete="email"
+              class="w-full border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-slate-800 dark:text-gray-100 placeholder-slate-400 dark:placeholder-gray-500 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#1F4E79] focus:ring-2 focus:ring-[#1F4E79]/10 transition"
+              placeholder="ana@etf.rs">
+          </div>
+          <p id="forgot-error" class="text-red-500 text-sm hidden"></p>
+          <p id="forgot-success" class="text-green-600 dark:text-green-400 text-sm hidden"></p>
+          <button onclick="handleForgotPassword()"
+            id="forgot-btn" class="w-full text-white py-2.5 rounded-lg text-sm font-semibold transition" style="background:#1F4E79">
+            Pošalji link
+          </button>
+          <button type="button" onclick="showLoginForm()"
+            class="w-full text-xs text-slate-400 dark:text-gray-500 hover:text-slate-600 dark:hover:text-gray-300 transition text-center pt-1">
+            ← Nazad na prijavu
+          </button>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-slate-700 dark:text-gray-200 mb-1">Lozinka</label>
-          <input id="reg-password" type="password" required minlength="8"
-            class="w-full border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-slate-800 dark:text-gray-100 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#1F4E79] focus:ring-2 focus:ring-[#1F4E79]/10">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-slate-700 dark:text-gray-200 mb-1">Potvrdi lozinku</label>
-          <input id="reg-confirm" type="password" required
-            class="w-full border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-slate-800 dark:text-gray-100 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#1F4E79] focus:ring-2 focus:ring-[#1F4E79]/10">
-        </div>
-        <p id="reg-error" class="text-red-500 text-sm hidden"></p>
-        <p id="reg-success" class="text-green-600 text-sm hidden"></p>
-        <button type="submit" id="register-btn"
-          class="w-full bg-[#1F4E79] text-white py-2 rounded-lg text-sm font-medium hover:bg-[#1a4268] transition">
-          Registruj se
-        </button>
-      </form>
+
+        <!-- Register form -->
+        <form id="form-register" onsubmit="handleRegister(event)" class="space-y-4 hidden">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-gray-200 mb-1">Email</label>
+            <input id="reg-email" type="email" required autocomplete="email"
+              class="w-full border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-slate-800 dark:text-gray-100 placeholder-slate-400 dark:placeholder-gray-500 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#1F4E79] focus:ring-2 focus:ring-[#1F4E79]/10 transition"
+              placeholder="ana@etf.rs">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-gray-200 mb-1">Lozinka</label>
+            <input id="reg-password" type="password" required minlength="8" autocomplete="new-password"
+              class="w-full border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-slate-800 dark:text-gray-100 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#1F4E79] focus:ring-2 focus:ring-[#1F4E79]/10 transition">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-gray-200 mb-1">Potvrdi lozinku</label>
+            <input id="reg-confirm" type="password" required autocomplete="new-password"
+              class="w-full border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-slate-800 dark:text-gray-100 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#1F4E79] focus:ring-2 focus:ring-[#1F4E79]/10 transition">
+          </div>
+          <p id="reg-error" class="text-red-500 text-sm hidden"></p>
+          <p id="reg-success" class="text-green-600 dark:text-green-400 text-sm hidden"></p>
+          <button type="submit" id="register-btn"
+            class="w-full text-white py-2.5 rounded-lg text-sm font-semibold transition" style="background:#1F4E79">
+            Napravi nalog
+          </button>
+        </form>
+      </div>
     </div>
   </div>
 
@@ -105,10 +200,8 @@
       setTheme(getCurrentTheme() === 'dark' ? 'light' : 'dark')
       updateThemeBtn()
     }
-  </script>
-  <script>
-    // Redirect to chat if already logged in
-    (async () => {
+
+    ;(async () => {
       const session = await getSession()
       if (session) window.location.href = '/'
     })()
@@ -117,12 +210,10 @@
       const isLogin = tab === 'login'
       document.getElementById('form-login').classList.toggle('hidden', !isLogin)
       document.getElementById('form-register').classList.toggle('hidden', isLogin)
-      document.getElementById('tab-login').className = isLogin
-        ? 'flex-1 py-1.5 text-sm font-medium rounded-md bg-white shadow-sm text-slate-800 transition'
-        : 'flex-1 py-1.5 text-sm font-medium rounded-md text-slate-500 transition'
-      document.getElementById('tab-register').className = isLogin
-        ? 'flex-1 py-1.5 text-sm font-medium rounded-md text-slate-500 transition'
-        : 'flex-1 py-1.5 text-sm font-medium rounded-md bg-white shadow-sm text-slate-800 transition'
+      const activeClass = 'flex-1 py-1.5 text-sm font-medium rounded-md bg-white dark:bg-gray-600 shadow-sm text-slate-800 dark:text-gray-100 transition'
+      const inactiveClass = 'flex-1 py-1.5 text-sm font-medium rounded-md text-slate-500 dark:text-gray-400 transition'
+      document.getElementById('tab-login').className = isLogin ? activeClass : inactiveClass
+      document.getElementById('tab-register').className = isLogin ? inactiveClass : activeClass
     }
 
     async function handleLogin(e) {
@@ -148,6 +239,48 @@
       }
     }
 
+    function showForgotPassword() {
+      document.getElementById('form-login').classList.add('hidden')
+      document.getElementById('form-register').classList.add('hidden')
+      document.getElementById('form-forgot').classList.remove('hidden')
+      document.getElementById('forgot-email').focus()
+    }
+
+    function showLoginForm() {
+      document.getElementById('form-forgot').classList.add('hidden')
+      document.getElementById('form-login').classList.remove('hidden')
+    }
+
+    async function handleForgotPassword() {
+      const btn = document.getElementById('forgot-btn')
+      const errEl = document.getElementById('forgot-error')
+      const successEl = document.getElementById('forgot-success')
+      const email = document.getElementById('forgot-email').value.trim()
+
+      if (!email) return
+      errEl.classList.add('hidden')
+      successEl.classList.add('hidden')
+      btn.disabled = true
+      btn.textContent = 'Šaljem...'
+
+      if (!sb) await initAuth()
+      const { error } = await sb.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/login.html'
+      })
+
+      if (error) {
+        errEl.textContent = error.message
+        errEl.classList.remove('hidden')
+        btn.disabled = false
+        btn.textContent = 'Pošalji link'
+      } else {
+        successEl.textContent = 'Poslali smo ti link za resetovanje lozinke. Proveri email.'
+        successEl.classList.remove('hidden')
+        btn.disabled = true
+        btn.textContent = 'Poslato ✓'
+      }
+    }
+
     async function handleRegister(e) {
       e.preventDefault()
       const btn = document.getElementById('register-btn')
@@ -166,7 +299,7 @@
       }
 
       btn.disabled = true
-      btn.textContent = 'Registrujem...'
+      btn.textContent = 'Pravim nalog...'
 
       const { error } = await signUp(
         document.getElementById('reg-email').value,
@@ -177,12 +310,12 @@
         errEl.textContent = error.message
         errEl.classList.remove('hidden')
         btn.disabled = false
-        btn.textContent = 'Registruj se'
+        btn.textContent = 'Napravi nalog'
       } else {
         successEl.textContent = I18N.sr.confirmEmailMsg
         successEl.classList.remove('hidden')
         btn.disabled = false
-        btn.textContent = 'Registruj se'
+        btn.textContent = 'Napravi nalog'
       }
     }
   </script>
