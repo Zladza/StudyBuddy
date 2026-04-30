@@ -46,7 +46,7 @@ function makeFilesHandler(supabaseClient) {
       .from('study-files')
       .createSignedUrl(storagePath, 3600)
 
-    res.json({ id: fileId, name, mime_type, size, storage_path: storagePath, signedUrl: urlData?.signedUrl || null })
+    res.json({ id: fileId, name, mime_type, size, signedUrl: urlData?.signedUrl || null })
   }
 
   async function listFiles(req, res) {
