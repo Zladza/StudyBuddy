@@ -133,12 +133,15 @@ async function handleChat(req, res, anthropicClient) {
   res.setHeader('Connection', 'keep-alive')
 
   try {
-    const stream = client.messages.stream({
+    const streamParams = {
       model: 'claude-sonnet-4-6',
       max_tokens: 8192,
       system: SYSTEM_PROMPT,
       messages: anthropicMessages
-    })
+    }
+    const stream = pdf
+      ? client.beta.messages.stream({ ...streamParams, betas: ['pdfs-2024-09-25'] })
+      : client.messages.stream(streamParams)
 
     stream.on('text', (text) => {
       res.write(`data: ${JSON.stringify({ type: 'text', text })}\n\n`)
