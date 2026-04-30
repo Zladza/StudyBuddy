@@ -156,6 +156,30 @@
           </button>
         </div>
 
+        <!-- Set new password form (shown after clicking reset link) -->
+        <div id="form-reset" class="hidden space-y-4">
+          <div class="text-center mb-2">
+            <p class="text-sm font-semibold text-slate-700 dark:text-gray-200">Nova lozinka</p>
+            <p class="text-xs text-slate-400 dark:text-gray-500 mt-1">Unesite novu lozinku za vaš nalog.</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-gray-200 mb-1">Nova lozinka</label>
+            <input id="reset-password" type="password" required minlength="8" autocomplete="new-password"
+              class="w-full border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-slate-800 dark:text-gray-100 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#1F4E79] focus:ring-2 focus:ring-[#1F4E79]/10 transition">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-gray-200 mb-1">Potvrdi lozinku</label>
+            <input id="reset-confirm" type="password" required autocomplete="new-password"
+              class="w-full border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-slate-800 dark:text-gray-100 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#1F4E79] focus:ring-2 focus:ring-[#1F4E79]/10 transition">
+          </div>
+          <p id="reset-error" class="text-red-500 text-sm hidden"></p>
+          <p id="reset-success" class="text-green-600 dark:text-green-400 text-sm hidden"></p>
+          <button onclick="handleSetNewPassword()"
+            id="reset-btn" class="w-full text-white py-2.5 rounded-lg text-sm font-semibold transition" style="background:#1F4E79">
+            Sačuvaj lozinku
+          </button>
+        </div>
+
         <!-- Register form -->
         <form id="form-register" onsubmit="handleRegister(event)" class="space-y-4 hidden">
           <div>
@@ -201,10 +225,16 @@
       updateThemeBtn()
     }
 
-    ;(async () => {
-      const session = await getSession()
-      if (session) window.location.href = '/'
-    })()
+    // If this is a password reset redirect, show the set-new-password form
+    const hashParams = new URLSearchParams(window.location.hash.slice(1))
+    if (hashParams.get('type') === 'recovery') {
+      showResetForm()
+    } else {
+      ;(async () => {
+        const session = await getSession()
+        if (session) window.location.href = '/'
+      })()
+    }
 
     function showTab(tab) {
       const isLogin = tab === 'login'
@@ -278,6 +308,52 @@
         successEl.classList.remove('hidden')
         btn.disabled = true
         btn.textContent = 'Poslato ✓'
+      }
+    }
+
+    function showResetForm() {
+      document.getElementById('form-login').classList.add('hidden')
+      document.getElementById('form-register').classList.add('hidden')
+      document.getElementById('form-forgot').classList.add('hidden')
+      document.getElementById('form-reset').classList.remove('hidden')
+      // Hide the login/register tabs — they're irrelevant during reset
+      document.querySelector('.flex.mb-6').classList.add('hidden')
+    }
+
+    async function handleSetNewPassword() {
+      const btn = document.getElementById('reset-btn')
+      const errEl = document.getElementById('reset-error')
+      const successEl = document.getElementById('reset-success')
+      const password = document.getElementById('reset-password').value
+      const confirm = document.getElementById('reset-confirm').value
+
+      errEl.classList.add('hidden')
+      successEl.classList.add('hidden')
+
+      if (password !== confirm) {
+        errEl.textContent = I18N.sr.passwordMismatch
+        errEl.classList.remove('hidden')
+        return
+      }
+
+      btn.disabled = true
+      btn.textContent = 'Čuvam...'
+
+      if (!sb) await initAuth()
+      // Supabase v2 picks up the recovery token from the URL hash automatically
+      await sb.auth.getSession()
+      const { error } = await sb.auth.updateUser({ password })
+
+      if (error) {
+        errEl.textContent = error.message
+        errEl.classList.remove('hidden')
+        btn.disabled = false
+        btn.textContent = 'Sačuvaj lozinku'
+      } else {
+        successEl.textContent = 'Lozinka uspešno promenjena! Preusmeravamo te...'
+        successEl.classList.remove('hidden')
+        btn.disabled = true
+        setTimeout(() => { window.location.href = '/' }, 2000)
       }
     }
 
