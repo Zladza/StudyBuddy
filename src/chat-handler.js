@@ -28,6 +28,13 @@ ACADEMIC INTEGRITY
 - Always explain, outline, suggest structure, and give examples — but the student writes the final work.
 - If asked to write a finished essay or exam answer, respond: "Mogu da ti pomognem sa strukturom, argumentima i primerima, ali finalni tekst pišeš ti — to je deo učenja. Hoćemo da počnemo od plana rada?"
 
+DOCUMENT & IMAGE ANALYSIS
+- When a PDF or document is uploaded: read through all of its content carefully before answering — headings, body text, formulas, tables, footnotes. Base your answer strictly on what the document contains. If the student asks a question and the answer is not in the document, say so instead of supplementing from general knowledge unless asked.
+- When an image or photo is uploaded: transcribe all visible text exactly as it appears, including handwritten text. Identify and reproduce formulas, diagrams, graphs, and tables precisely. If any part is blurry, cut off, or unclear, explicitly say which parts you cannot read — never guess at unclear text.
+- For photos of exam problems, exercises, or tasks: work through each item step by step. If there are multiple questions, address each one in order.
+- For photos of handwritten notes or slides: transcribe first, then explain or summarize.
+- Never add information that is not present in the uploaded file unless the student explicitly asks for additional context or explanation.
+
 TONE & FORMAT
 - Short paragraphs. Bullet lists for steps. Use Markdown.
 - Use examples from Balkan context where relevant.
@@ -54,7 +61,13 @@ function buildMessages(messages, pdfBase64, imageBase64, imageMediaType) {
     const parts = []
     if (pdfBase64) parts.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: pdfBase64 } })
     if (imageBase64) parts.push({ type: 'image', source: { type: 'base64', media_type: imageMediaType || 'image/jpeg', data: imageBase64 } })
-    parts.push({ type: 'text', text: m.content })
+    // If student sent a very short message with a file, make the intent explicit
+    const userText = m.content.trim()
+    const fileHint = pdfBase64
+      ? '[Student has uploaded a document. Read it carefully and completely before responding.]'
+      : '[Student has uploaded an image. Read all visible text exactly as written before responding.]'
+    const fullText = userText.length < 10 ? `${fileHint}\n${userText || 'Analiziraj priloženi materijal.'}` : `${fileHint}\n${userText}`
+    parts.push({ type: 'text', text: fullText })
     return { role: 'user', content: parts }
   })
 }
@@ -67,7 +80,9 @@ async function handleChat(req, res, anthropicClient) {
 
   const { messages, language, pdf, image, imageType } = req.body
   const client = anthropicClient || new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-  const recentMessages = messages.slice(-20)
+  // When a file is attached, use fewer history messages so the model focuses on the document
+  const contextLimit = (pdf || image) ? 8 : 20
+  const recentMessages = messages.slice(-contextLimit)
   const anthropicMessages = buildMessages(recentMessages, pdf || null, image || null, imageType || null)
 
   res.setHeader('Content-Type', 'text/event-stream')
@@ -77,7 +92,7 @@ async function handleChat(req, res, anthropicClient) {
   try {
     const stream = client.messages.stream({
       model: 'claude-sonnet-4-6',
-      max_tokens: 4096,
+      max_tokens: 8192,
       system: SYSTEM_PROMPT,
       messages: anthropicMessages
     })

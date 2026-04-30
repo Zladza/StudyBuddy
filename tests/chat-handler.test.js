@@ -30,13 +30,12 @@ test('buildMessages wraps last user message with PDF document block', () => {
     { role: 'user', content: 'Sumiraj ovo' }
   ]
   const result = buildMessages(input, 'base64pdfdata==')
-  expect(result[0].content).toEqual([
-    {
-      type: 'document',
-      source: { type: 'base64', media_type: 'application/pdf', data: 'base64pdfdata==' }
-    },
-    { type: 'text', text: 'Sumiraj ovo' }
-  ])
+  expect(result[0].content[0]).toEqual({
+    type: 'document',
+    source: { type: 'base64', media_type: 'application/pdf', data: 'base64pdfdata==' }
+  })
+  expect(result[0].content[1].type).toBe('text')
+  expect(result[0].content[1].text).toContain('Sumiraj ovo')
 })
 
 test('SYSTEM_PROMPT contains key StudyBuddy instructions', () => {
