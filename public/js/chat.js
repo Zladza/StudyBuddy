@@ -27,6 +27,7 @@ let quizScore = 0
 let quizAnswered = false
 let currentSummary = null
 let currentGroupId = null
+let currentGroupData = null
 let groupRealtimeChannel = null
 let groupsList = []
 let currentUserId = null
@@ -1385,8 +1386,9 @@ function setupOutsideClick() {
   document.addEventListener('click', e => {
     const attachPanel = document.getElementById('attach-panel')
     const attachBtn = document.getElementById('attach-btn')
+    const groupAttachBtn = document.getElementById('group-attach-btn')
     if (attachPanel && !attachPanel.classList.contains('hidden') &&
-        !attachPanel.contains(e.target) && !attachBtn?.contains(e.target)) {
+        !attachPanel.contains(e.target) && !attachBtn?.contains(e.target) && !groupAttachBtn?.contains(e.target)) {
       closeAttachPanel()
     }
     const avatarContainer = document.getElementById('avatar-container')
@@ -2060,6 +2062,7 @@ async function openGroup(id) {
   const res = await fetch(`/api/groups/${id}`, { headers: { Authorization: `Bearer ${token}` } })
   if (!res.ok) return
   const group = await res.json()
+  currentGroupData = group
 
   document.getElementById('conversation-title').textContent = group.name
   document.getElementById('chat-messages').classList.add('hidden')
@@ -2078,6 +2081,7 @@ async function openGroup(id) {
 function closeGroupView() {
   unsubscribeFromGroup()
   currentGroupId = null
+  currentGroupData = null
   document.getElementById('chat-messages').classList.remove('hidden')
   document.getElementById('group-messages').classList.add('hidden')
   document.getElementById('main-input-bar').classList.remove('hidden')
@@ -2192,10 +2196,8 @@ async function inviteMember() {
 
 async function openGroupInfo() {
   if (!currentGroupId) return
-  const token = getAccessToken()
-  const res = await fetch(`/api/groups/${currentGroupId}`, { headers: { Authorization: `Bearer ${token}` } })
-  if (!res.ok) return
-  const group = await res.json()
+  const group = currentGroupData
+  if (!group) return
   document.getElementById('group-info-title').textContent = group.name
   const membersList = document.getElementById('group-info-members')
   membersList.innerHTML = (group.members || []).map(m => `
