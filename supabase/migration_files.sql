@@ -1,0 +1,43 @@
+-- files table
+create table if not exists public.files (
+  id           uuid primary key default gen_random_uuid(),
+  user_id      uuid references auth.users(id) on delete cascade not null,
+  name         text not null,
+  size         integer not null,
+  mime_type    text not null,
+  storage_path text not null,
+  created_at   timestamptz default now()
+);
+
+alter table public.files enable row level security;
+
+create policy "users manage own files"
+  on public.files for all
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+-- conversation_files join table
+create table if not exists public.conversation_files (
+  id               uuid primary key default gen_random_uuid(),
+  conversation_id  uuid references public.conversations(id) on delete cascade not null,
+  file_id          uuid references public.files(id) on delete cascade not null,
+  created_at       timestamptz default now(),
+  unique (conversation_id, file_id)
+);
+
+alter table public.conversation_files enable row level security;
+
+create policy "users see own conversation files"
+  on public.conversation_files for all
+  using (
+    exists (
+      select 1 from public.conversations c
+      where c.id = conversation_id and c.user_id = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.conversations c
+      where c.id = conversation_id and c.user_id = auth.uid()
+    )
+  );
