@@ -199,7 +199,9 @@ function setupScrollButton() {
 }
 
 function scrollToBottomIfAtBottom() {
-  if (!userScrolledUp) scrollToBottom()
+  const chatEl = document.getElementById('chat-messages')
+  const distFromBottom = chatEl.scrollHeight - chatEl.clientHeight - chatEl.scrollTop
+  if (distFromBottom < 40) scrollToBottom()
 }
 
 // ── Color theme ────────────────────────────────────────────────────────────
