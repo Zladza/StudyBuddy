@@ -6,6 +6,7 @@ let currentConversationId = null
 let openConvMenuId = null
 let currentSubjectFilter = null
 let currentNoteId = null
+let notesCache = []
 let noteSaveTimer = null
 let currentMessages = []
 let conversations = []
@@ -1846,17 +1847,17 @@ function closeMoveSubjectModal() {
   document.getElementById('move-subject-modal').classList.add('hidden')
 }
 
-// ── Notes (localStorage) ───────────────────────────────────────────────────
-function getNotes() {
-  try { return JSON.parse(localStorage.getItem('sb-notes') || '[]') } catch { return [] }
+// ── Notes (Supabase) ────────────────────────────────────────────────────────
+async function loadNotes() {
+  const token = getAccessToken()
+  if (!token) return
+  const res = await fetch('/api/notes', { headers: { Authorization: `Bearer ${token}` } })
+  if (res.ok) notesCache = await res.json()
 }
 
-function saveNotes(notes) {
-  localStorage.setItem('sb-notes', JSON.stringify(notes))
-}
-
-function openNotes() {
+async function openNotes() {
   document.getElementById('notes-modal').classList.remove('hidden')
+  await loadNotes()
   notesShowList()
 }
 
@@ -1877,16 +1878,15 @@ function notesShowList() {
 function renderNotesList() {
   const cards = document.getElementById('notes-cards')
   const empty = document.getElementById('notes-empty')
-  const notes = getNotes()
   cards.innerHTML = ''
 
-  if (notes.length === 0) {
+  if (notesCache.length === 0) {
     empty.classList.remove('hidden')
     return
   }
   empty.classList.add('hidden')
 
-  notes.slice().reverse().forEach(note => {
+  notesCache.forEach(note => {
     const card = document.createElement('div')
     card.className = 'note-card relative bg-slate-50 dark:bg-gray-700 border border-slate-200 dark:border-gray-600 rounded-xl p-3'
     const preview = (note.content || '').split('\n').slice(0, 3).join('\n')
@@ -1901,8 +1901,7 @@ function renderNotesList() {
 }
 
 function notesOpenEdit(id) {
-  const notes = getNotes()
-  const note = notes.find(n => n.id === id)
+  const note = notesCache.find(n => n.id === id)
   if (!note) return
   currentNoteId = id
   document.getElementById('note-title-input').value = note.title || ''
@@ -1914,17 +1913,23 @@ function notesOpenEdit(id) {
   document.getElementById('note-content-input').focus()
 }
 
-function createNewNote() {
-  const newNote = { id: `note-${Date.now()}`, title: '', content: '', updatedAt: Date.now() }
-  const notes = getNotes()
-  notes.push(newNote)
-  saveNotes(notes)
-  notesOpenEdit(newNote.id)
+async function createNewNote() {
+  const token = getAccessToken()
+  const res = await fetch('/api/notes', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ title: '', content: '' })
+  })
+  if (!res.ok) return
+  const note = await res.json()
+  notesCache.unshift(note)
+  notesOpenEdit(note.id)
 }
 
-function deleteNote(id) {
-  const notes = getNotes().filter(n => n.id !== id)
-  saveNotes(notes)
+async function deleteNote(id) {
+  const token = getAccessToken()
+  await fetch(`/api/notes/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } })
+  notesCache = notesCache.filter(n => n.id !== id)
   if (currentNoteId === id) notesShowList()
   else renderNotesList()
 }
@@ -1934,15 +1939,21 @@ function scheduleNoteSave() {
   noteSaveTimer = setTimeout(doSaveNote, 800)
 }
 
-function doSaveNote() {
+async function doSaveNote() {
   if (!currentNoteId) return
-  const notes = getNotes()
-  const idx = notes.findIndex(n => n.id === currentNoteId)
-  if (idx < 0) return
-  notes[idx].title = document.getElementById('note-title-input').value
-  notes[idx].content = document.getElementById('note-content-input').value
-  notes[idx].updatedAt = Date.now()
-  saveNotes(notes)
+  const title = document.getElementById('note-title-input').value
+  const content = document.getElementById('note-content-input').value
+  const token = getAccessToken()
+  const res = await fetch(`/api/notes/${currentNoteId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ title, content })
+  })
+  if (res.ok) {
+    const updated = await res.json()
+    const idx = notesCache.findIndex(n => n.id === currentNoteId)
+    if (idx >= 0) notesCache[idx] = updated
+  }
   noteSaveTimer = null
 }
 

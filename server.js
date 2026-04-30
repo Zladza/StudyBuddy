@@ -65,6 +65,13 @@ app.get('/api/groups/:id/messages', requireAuth, (req, res) => groups.getMessage
 app.post('/api/groups/:id/messages', requireAuth, (req, res) => groups.sendMessage(req, res))
 app.delete('/api/groups/:id/leave', requireAuth, (req, res) => groups.leaveGroup(req, res))
 app.delete('/api/groups/:id', requireAuth, (req, res) => groups.deleteGroup(req, res))
+
+const { makeNotesHandler } = require('./src/notes-handler')
+const notesHandler = makeNotesHandler()
+app.get('/api/notes', requireAuth, (req, res) => notesHandler.listNotes(req, res))
+app.post('/api/notes', requireAuth, (req, res) => notesHandler.createNote(req, res))
+app.patch('/api/notes/:id', requireAuth, (req, res) => notesHandler.updateNote(req, res))
+app.delete('/api/notes/:id', requireAuth, (req, res) => notesHandler.deleteNote(req, res))
 // 404 fallback for unmatched routes
 app.use((req, res) => {
   res.status(404).json({ error: 'Not found' })

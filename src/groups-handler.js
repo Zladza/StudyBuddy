@@ -37,11 +37,10 @@ function makeGroupsHandler(supabaseClient) {
     const { data: group } = await db.from('study_groups').select('id, name, created_by, created_at').eq('id', id).single()
     if (!group) return res.status(404).json({ error: 'Not found.' })
     const { data: memberRows } = await db.from('group_members').select('user_id, joined_at').eq('group_id', id)
-    const { data: { users } } = await db.auth.admin.listUsers({ perPage: 1000 })
-    const members = (memberRows || []).map(m => {
-      const u = users.find(u => u.id === m.user_id)
+    const members = await Promise.all((memberRows || []).map(async m => {
+      const { data: { user: u } } = await db.auth.admin.getUserById(m.user_id)
       return { user_id: m.user_id, email: u?.email, display_name: u?.user_metadata?.display_name, joined_at: m.joined_at }
-    })
+    }))
     res.json({ ...group, members })
   }
 
@@ -50,10 +49,8 @@ function makeGroupsHandler(supabaseClient) {
     const { email } = req.body
     if (!email) return res.status(400).json({ error: 'Email required.' })
     if (!(await isMember(id, req.user.id))) return res.status(403).json({ error: 'Not a member.' })
-    const { data: { users }, error: listErr } = await db.auth.admin.listUsers({ perPage: 1000 })
-    if (listErr) return res.status(500).json({ error: 'Failed to search users.' })
-    const target = users.find(u => u.email?.toLowerCase() === email.trim().toLowerCase())
-    if (!target) return res.status(404).json({ error: 'user_not_found' })
+    const { data: { user: target }, error: listErr } = await db.auth.admin.getUserByEmail(email.trim())
+    if (listErr || !target) return res.status(404).json({ error: 'user_not_found' })
     if (await isMember(id, target.id)) return res.status(409).json({ error: 'already_member' })
     const { error } = await db.from('group_members').insert({ group_id: id, user_id: target.id })
     if (error) return res.status(500).json({ error: 'Failed.' })
