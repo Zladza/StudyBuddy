@@ -517,7 +517,7 @@ async function sendMessage() {
   if (isSending) return
   const input = document.getElementById('message-input')
   const text = input.value.trim()
-  if (!text) return
+  if (!text && !attachedPdf && !attachedImage) return
 
   const token = getAccessToken()
   if (!token) { window.location.href = '/login.html'; return }
@@ -530,9 +530,10 @@ async function sendMessage() {
   updateSendButton(true)
   document.getElementById('empty-state').classList.add('hidden')
 
-  const userMsg = { role: 'user', content: text, hasPdf: !!attachedPdf, sentAt: Date.now() }
+  const displayText = text || (attachedPdf ? '📎 ' + attachedPdf.name : attachedImage ? '📷 ' + attachedImage.name : '')
+  const userMsg = { role: 'user', content: text || '', hasPdf: !!attachedPdf, sentAt: Date.now() }
   currentMessages.push(userMsg)
-  appendBubble('user', text, userMsg.sentAt)
+  appendBubble('user', displayText, userMsg.sentAt)
 
   const assistantRow = createBubbleRow('assistant')
   const bubble = assistantRow.querySelector('.msg-bubble')
