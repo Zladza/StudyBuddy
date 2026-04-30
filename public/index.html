@@ -352,6 +352,9 @@
       </div>
     </div>
 
+    <!-- Group messages (shown instead of chat-messages when in a group) -->
+    <div id="group-messages" class="hidden flex-1 overflow-y-auto p-4 sm:p-6 flex flex-col gap-3"></div>
+
     <!-- PDF preview bar -->
     <div id="pdf-bar" class="hidden px-4 py-2 bg-blue-50 dark:bg-blue-900/20 border-t border-blue-100 dark:border-blue-800 flex items-center gap-2 text-sm text-blue-700 dark:text-blue-300">
       📎 <span id="pdf-name"></span>
@@ -365,30 +368,31 @@
       <button onclick="removeImage()" class="text-slate-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 text-xs font-medium transition" data-i18n="removeImage">Ukloni</button>
     </div>
 
-    <!-- Input bar -->
-    <div class="px-4 py-3 bg-white dark:bg-gray-800 border-t border-slate-200 dark:border-gray-700 shrink-0">
-      <!-- Attach panel -->
-      <div id="attach-panel" class="hidden mb-2 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl shadow-lg py-1.5 overflow-hidden">
-        <input type="file" id="pdf-input" accept=".pdf" class="hidden" onchange="handlePdfSelect(event)">
-        <input type="file" id="image-input" accept="image/jpeg,image/png,image/gif,image/webp" class="hidden" onchange="handleImageSelect(event)">
-        <button onclick="document.getElementById('pdf-input').click();closeAttachPanel()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-gray-700 transition text-left">
-          📎 <span data-i18n="addFile">Dodaj fajl</span>
-        </button>
-        <button onclick="document.getElementById('image-input').click();closeAttachPanel()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-gray-700 transition text-left">
-          📷 <span data-i18n="addImage">Dodaj sliku</span>
-        </button>
-        <div id="attach-tools-section" class="hidden">
-          <div class="border-t border-slate-100 dark:border-gray-700 my-1"></div>
-          <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-gray-500 px-4 pt-1 pb-0.5" data-i18n="studyToolsLabel">Alati za učenje</p>
-          <button onclick="generateFlashcards();closeAttachPanel()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-gray-700 transition text-left" data-i18n="flashcardsBtn">🃏 Kartice</button>
-          <button onclick="generateQuiz();closeAttachPanel()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-gray-700 transition text-left" data-i18n="quizBtn">🧠 Kviz</button>
-          <button onclick="generateGlossary();closeAttachPanel()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-gray-700 transition text-left" data-i18n="glossaryBtn">📖 Pojmovi</button>
-          <div class="border-t border-slate-100 dark:border-gray-700 my-1"></div>
-          <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-gray-500 px-4 pt-1 pb-0.5" data-i18n="shareAndExport">Deli i izvezi</p>
-          <button onclick="generateSummary();closeAttachPanel()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-gray-700 transition text-left" data-i18n="summaryBtn">📋 Rezime</button>
-          <button onclick="shareConversation();closeAttachPanel()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-gray-700 transition text-left" data-i18n="shareBtn">🔗 Podeli razgovor</button>
-        </div>
+    <!-- Attach panel (shared by main chat and group chat) -->
+    <div id="attach-panel" class="hidden mx-4 mb-2 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl shadow-lg py-1.5 overflow-hidden">
+      <input type="file" id="pdf-input" accept=".pdf" class="hidden" onchange="handlePdfSelect(event)">
+      <input type="file" id="image-input" accept="image/jpeg,image/png,image/gif,image/webp" class="hidden" onchange="handleImageSelect(event)">
+      <button onclick="document.getElementById('pdf-input').click();closeAttachPanel()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-gray-700 transition text-left">
+        📎 <span data-i18n="addFile">Dodaj fajl</span>
+      </button>
+      <button onclick="document.getElementById('image-input').click();closeAttachPanel()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-gray-700 transition text-left">
+        📷 <span data-i18n="addImage">Dodaj sliku</span>
+      </button>
+      <div id="attach-tools-section" class="hidden">
+        <div class="border-t border-slate-100 dark:border-gray-700 my-1"></div>
+        <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-gray-500 px-4 pt-1 pb-0.5" data-i18n="studyToolsLabel">Alati za učenje</p>
+        <button onclick="generateFlashcards();closeAttachPanel()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-gray-700 transition text-left" data-i18n="flashcardsBtn">🃏 Kartice</button>
+        <button onclick="generateQuiz();closeAttachPanel()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-gray-700 transition text-left" data-i18n="quizBtn">🧠 Kviz</button>
+        <button onclick="generateGlossary();closeAttachPanel()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-gray-700 transition text-left" data-i18n="glossaryBtn">📖 Pojmovi</button>
+        <div class="border-t border-slate-100 dark:border-gray-700 my-1"></div>
+        <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-gray-500 px-4 pt-1 pb-0.5" data-i18n="shareAndExport">Deli i izvezi</p>
+        <button onclick="generateSummary();closeAttachPanel()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-gray-700 transition text-left" data-i18n="summaryBtn">📋 Rezime</button>
+        <button onclick="shareConversation();closeAttachPanel()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-gray-700 transition text-left" data-i18n="shareBtn">🔗 Podeli razgovor</button>
       </div>
+    </div>
+
+    <!-- Main input bar -->
+    <div id="main-input-bar" class="px-4 py-3 bg-white dark:bg-gray-800 border-t border-slate-200 dark:border-gray-700 shrink-0">
       <div class="flex items-end gap-2 bg-slate-100 dark:bg-gray-700 border border-slate-200 dark:border-gray-600 rounded-xl px-3 py-2">
         <textarea id="message-input" rows="1"
           class="flex-1 bg-transparent border-none outline-none text-sm text-slate-800 dark:text-gray-100 placeholder-slate-400 dark:placeholder-gray-500 resize-none leading-relaxed max-h-32"
@@ -403,6 +407,19 @@
       <p class="text-center text-[10px] text-slate-400 dark:text-gray-600 mt-1.5" id="footer-disclaimer">
         StudyBuddy može da greši. Uvek proveri važne informacije.
       </p>
+    </div>
+
+    <!-- Group input bar (shown instead of main-input-bar when in a group) -->
+    <div id="group-input-bar" class="hidden px-4 py-3 bg-white dark:bg-gray-800 border-t border-slate-200 dark:border-gray-700 shrink-0">
+      <div class="flex items-end gap-2 bg-slate-100 dark:bg-gray-700 border border-slate-200 dark:border-gray-600 rounded-xl px-3 py-2">
+        <textarea id="group-input" rows="1"
+          class="flex-1 bg-transparent border-none outline-none text-sm text-slate-800 dark:text-gray-100 placeholder-slate-400 dark:placeholder-gray-500 resize-none leading-relaxed max-h-32"
+          onkeydown="handleGroupInputKeydown(event)" oninput="autoResize(this)"></textarea>
+        <button onclick="toggleAttachPanel()"
+          class="w-8 h-8 flex items-center justify-center text-slate-400 dark:text-gray-500 hover:text-slate-600 dark:hover:text-gray-300 rounded-lg transition shrink-0 text-xl leading-none">＋</button>
+        <button onclick="sendGroupMessage()" class="accent-btn w-8 h-8 flex items-center justify-center text-white rounded-lg transition shrink-0 font-bold text-sm">↑</button>
+      </div>
+      <p class="text-center text-[10px] text-slate-400 dark:text-gray-600 mt-1.5" data-i18n="aiHint">Upiši @AI da uključiš asistenta</p>
     </div>
   </div>
 
@@ -521,20 +538,6 @@
       <h2 class="text-sm font-semibold text-slate-800 dark:text-gray-100 mb-3" data-i18n="moveToSubject">Premesti u predmet</h2>
       <div id="subject-pick-list" class="flex flex-col gap-1.5 mb-3 max-h-56 overflow-y-auto"></div>
       <button onclick="closeMoveSubjectModal()" class="w-full py-2 rounded-lg text-sm border border-slate-200 dark:border-gray-600 text-slate-500 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-gray-700 transition">✕</button>
-    </div>
-  </div>
-
-  <!-- Group chat view (replaces main chat when viewing a group) -->
-  <div id="group-chat-view" class="hidden absolute inset-0 flex flex-col bg-slate-50 dark:bg-gray-900" style="z-index:5">
-    <div id="group-messages" class="flex-1 overflow-y-auto p-4 sm:p-6 flex flex-col gap-3"></div>
-    <div class="px-4 py-3 bg-white dark:bg-gray-800 border-t border-slate-200 dark:border-gray-700 shrink-0">
-      <div class="flex items-end gap-2 bg-slate-100 dark:bg-gray-700 border border-slate-200 dark:border-gray-600 rounded-xl px-3 py-2">
-        <textarea id="group-input" rows="1"
-          class="flex-1 bg-transparent border-none outline-none text-sm text-slate-800 dark:text-gray-100 placeholder-slate-400 dark:placeholder-gray-500 resize-none leading-relaxed max-h-32"
-          onkeydown="handleGroupInputKeydown(event)" oninput="autoResize(this)"></textarea>
-        <button onclick="sendGroupMessage()" class="accent-btn w-8 h-8 flex items-center justify-center text-white rounded-lg transition shrink-0 font-bold text-sm">↑</button>
-      </div>
-      <p class="text-center text-[10px] text-slate-400 dark:text-gray-600 mt-1.5" data-i18n="aiHint">Upiši @AI da uključiš asistenta</p>
     </div>
   </div>
 

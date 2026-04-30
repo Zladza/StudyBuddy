@@ -2062,7 +2062,12 @@ async function openGroup(id) {
   const group = await res.json()
 
   document.getElementById('conversation-title').textContent = group.name
-  document.getElementById('group-chat-view').classList.remove('hidden')
+  document.getElementById('chat-messages').classList.add('hidden')
+  document.getElementById('group-messages').classList.remove('hidden')
+  document.getElementById('main-input-bar').classList.add('hidden')
+  document.getElementById('group-input-bar').classList.remove('hidden')
+  document.getElementById('pdf-bar').classList.add('hidden')
+  document.getElementById('image-bar').classList.add('hidden')
   document.getElementById('back-to-chat-btn').classList.remove('hidden')
   document.getElementById('group-header-actions').classList.remove('hidden')
 
@@ -2073,7 +2078,10 @@ async function openGroup(id) {
 function closeGroupView() {
   unsubscribeFromGroup()
   currentGroupId = null
-  document.getElementById('group-chat-view').classList.add('hidden')
+  document.getElementById('chat-messages').classList.remove('hidden')
+  document.getElementById('group-messages').classList.add('hidden')
+  document.getElementById('main-input-bar').classList.remove('hidden')
+  document.getElementById('group-input-bar').classList.add('hidden')
   document.getElementById('back-to-chat-btn').classList.add('hidden')
   document.getElementById('group-header-actions').classList.add('hidden')
   document.getElementById('conversation-title').textContent = currentConversationId
