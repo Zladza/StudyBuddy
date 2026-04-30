@@ -8,7 +8,7 @@ function makeFilesHandler(supabaseClient) {
 
   async function uploadFile(req, res) {
     const { name, mime_type, size, base64 } = req.body
-    if (!name || !mime_type || !size || !base64) {
+    if (!name || !mime_type || size == null || !base64) {
       return res.status(400).json({ error: 'name, mime_type, size, base64 required.' })
     }
 
@@ -24,7 +24,8 @@ function makeFilesHandler(supabaseClient) {
     }
 
     const fileId = fileRow.id
-    const storagePath = `${req.user.id}/${fileId}-${name}`
+    const safeName = name.replace(/[/\\]/g, '_')
+    const storagePath = `${req.user.id}/${fileId}-${safeName}`
     const buffer = Buffer.from(base64, 'base64')
 
     const { error: storageError } = await db.storage
@@ -33,11 +34,13 @@ function makeFilesHandler(supabaseClient) {
 
     if (storageError) {
       console.error('uploadFile storage error:', storageError)
-      await db.from('files').delete().eq('id', fileId)
+      const { error: rollbackError } = await db.from('files').delete().eq('id', fileId)
+      if (rollbackError) console.error('uploadFile rollback error:', rollbackError)
       return res.status(500).json({ error: 'Greška pri uploadovanju fajla.' })
     }
 
-    await db.from('files').update({ storage_path: storagePath }).eq('id', fileId)
+    const { error: updateError } = await db.from('files').update({ storage_path: storagePath }).eq('id', fileId)
+    if (updateError) console.error('uploadFile update error:', updateError)
 
     const { data: urlData } = await db.storage
       .from('study-files')
@@ -49,7 +52,7 @@ function makeFilesHandler(supabaseClient) {
   async function listFiles(req, res) {
     const { data, error } = await db
       .from('files')
-      .select('id, name, size, mime_type, storage_path, created_at')
+      .select('id, name, size, mime_type, created_at')
       .eq('user_id', req.user.id)
       .order('created_at', { ascending: false })
 
@@ -57,7 +60,7 @@ function makeFilesHandler(supabaseClient) {
       console.error('listFiles error:', error)
       return res.status(500).json({ error: 'Greška pri učitavanju fajlova.' })
     }
-    res.json(data)
+    res.json(data || [])
   }
 
   async function deleteFile(req, res) {
@@ -71,7 +74,8 @@ function makeFilesHandler(supabaseClient) {
 
     if (fetchError || !file) return res.status(404).json({ error: 'Fajl nije pronađen.' })
 
-    await db.storage.from('study-files').remove([file.storage_path])
+    const { error: removeError } = await db.storage.from('study-files').remove([file.storage_path])
+    if (removeError) console.error('deleteFile storage remove error:', removeError)
 
     const { error } = await db
       .from('files')

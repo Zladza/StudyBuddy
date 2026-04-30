@@ -95,3 +95,30 @@ test('getSignedUrl returns fresh signed URL', async () => {
   await getSignedUrl(makeReq({}, { id: 'f1' }), res)
   expect(res.body.signedUrl).toBe('https://signed.url/test')
 })
+
+test('uploadFile deletes DB row when storage upload fails', async () => {
+  const db = makeDbMock({ storageError: { message: 'bucket not found' } })
+  const { uploadFile } = makeFilesHandler(db)
+  const req = makeReq({ name: 'doc.pdf', mime_type: 'application/pdf', size: 1024, base64: 'abc123' })
+  const res = makeRes()
+  await uploadFile(req, res)
+  expect(res.statusCode).toBe(500)
+})
+
+test('deleteFile removes from storage and DB and returns success', async () => {
+  const db = makeDbMock({ fileRow: { id: 'f1', storage_path: 'user-abc/f1-doc.pdf' } })
+  const { deleteFile } = makeFilesHandler(db)
+  const res = makeRes()
+  await deleteFile(makeReq({}, { id: 'f1' }), res)
+  expect(res.statusCode).toBe(200)
+  expect(res.body.success).toBe(true)
+  expect(db.storage.from).toHaveBeenCalledWith('study-files')
+})
+
+test('listFiles returns empty array when user has no files', async () => {
+  const db = makeDbMock({ files: null })
+  const { listFiles } = makeFilesHandler(db)
+  const res = makeRes()
+  await listFiles(makeReq(), res)
+  expect(res.body).toEqual([])
+})
