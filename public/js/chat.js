@@ -15,6 +15,8 @@ let isSending = false
 let currentDisplayName = null
 let historySearch = ''
 let currentAbortController = null
+let activeTyperCancel = null
+let userScrolledUp = false
 let flashcards = []
 let flashcardIndex = 0
 let flashcardFlipped = false
@@ -192,7 +194,12 @@ function setupScrollButton() {
   chatEl.addEventListener('scroll', () => {
     const atBottom = chatEl.scrollHeight - chatEl.clientHeight - chatEl.scrollTop < 80
     btn.classList.toggle('hidden', atBottom)
+    userScrolledUp = !atBottom
   })
+}
+
+function scrollToBottomIfAtBottom() {
+  if (!userScrolledUp) scrollToBottom()
 }
 
 // ── Color theme ────────────────────────────────────────────────────────────
@@ -499,6 +506,7 @@ function updateSendButton(sending) {
 
 function stopGeneration() {
   if (currentAbortController) { currentAbortController.abort(); currentAbortController = null }
+  if (activeTyperCancel) { activeTyperCancel(); activeTyperCancel = null }
 }
 
 async function sendMessage() {
@@ -509,6 +517,8 @@ async function sendMessage() {
 
   const token = getAccessToken()
   if (!token) { window.location.href = '/login.html'; return }
+
+  userScrolledUp = false
 
   isSending = true
   input.value = ''
@@ -580,6 +590,38 @@ async function consumeStream(response, bubble) {
   const decoder = new TextDecoder()
   let buffer = '', fullText = '', started = false
 
+  // Typewriter state
+  let charQueue = ''
+  let typedSoFar = ''
+  let streamDone = false
+  let typerCancelled = false
+  let typerResolve = null
+
+  activeTyperCancel = () => { typerCancelled = true }
+
+  function runTyper() {
+    if (typerCancelled) { if (typerResolve) typerResolve(); return }
+
+    if (charQueue.length > 0) {
+      // Drain faster when the queue builds up so we never fall far behind
+      const take = charQueue.length > 100 ? 6 : charQueue.length > 30 ? 3 : 1
+      typedSoFar += charQueue.slice(0, take)
+      charQueue = charQueue.slice(take)
+      bubble.innerHTML = marked.parse(typedSoFar)
+      applyContentEnhancements(bubble)
+      scrollToBottomIfAtBottom()
+    }
+
+    if (!streamDone || charQueue.length > 0) {
+      setTimeout(runTyper, 16)
+    } else {
+      if (typerResolve) typerResolve()
+    }
+  }
+
+  const typerDone = new Promise(resolve => { typerResolve = resolve })
+  setTimeout(runTyper, 16)
+
   while (true) {
     const { done, value } = await reader.read()
     if (done) break
@@ -593,14 +635,26 @@ async function consumeStream(response, bubble) {
         if (event.type === 'text') {
           if (!started) { started = true; bubble.innerHTML = '' }
           fullText += event.text
-          bubble.innerHTML = marked.parse(fullText)
-          applyContentEnhancements(bubble)
-          scrollToBottom()
+          charQueue += event.text
         }
-        if (event.type === 'error') { bubble.innerHTML = ''; bubble.textContent = event.message }
+        if (event.type === 'error') {
+          typerCancelled = true
+          bubble.innerHTML = ''
+          bubble.textContent = event.message
+        }
       } catch {}
     }
   }
+
+  streamDone = true
+  await typerDone
+
+  if (!typerCancelled) {
+    bubble.innerHTML = marked.parse(typedSoFar)
+    applyContentEnhancements(bubble)
+  }
+
+  activeTyperCancel = null
   return fullText
 }
 
