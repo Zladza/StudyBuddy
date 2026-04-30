@@ -1,9 +1,12 @@
+-- Migration: files and conversation_files tables for Supabase Storage
+-- Run in Supabase SQL Editor → New query → paste → Run
+
 -- files table
 create table if not exists public.files (
   id           uuid primary key default gen_random_uuid(),
   user_id      uuid references auth.users(id) on delete cascade not null,
   name         text not null,
-  size         integer not null,
+  size         bigint not null,
   mime_type    text not null,
   storage_path text not null,
   created_at   timestamptz default now()
@@ -41,3 +44,7 @@ create policy "users see own conversation files"
       where c.id = conversation_id and c.user_id = auth.uid()
     )
   );
+
+create index if not exists idx_files_user        on public.files(user_id, created_at);
+create index if not exists idx_conv_files_conv   on public.conversation_files(conversation_id);
+create index if not exists idx_conv_files_file   on public.conversation_files(file_id);
