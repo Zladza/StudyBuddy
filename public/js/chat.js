@@ -531,7 +531,8 @@ async function sendMessage() {
   document.getElementById('empty-state').classList.add('hidden')
 
   const displayText = text || (attachedPdf ? '📎 ' + attachedPdf.name : attachedImage ? '📷 ' + attachedImage.name : '')
-  const userMsg = { role: 'user', content: text || '', hasPdf: !!attachedPdf, sentAt: Date.now() }
+  const messageContent = text || displayText
+  const userMsg = { role: 'user', content: messageContent, hasPdf: !!attachedPdf, sentAt: Date.now() }
   currentMessages.push(userMsg)
   appendBubble('user', displayText, userMsg.sentAt)
 

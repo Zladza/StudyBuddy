@@ -95,7 +95,7 @@ function validateRequest(body) {
 }
 
 function buildMessages(messages, pdfBase64, imageBase64, imageMediaType) {
-  const clean = messages.map(m => ({ role: m.role, content: m.content }))
+  const clean = messages.map(m => ({ role: m.role, content: m.content || '[Priložen fajl]' }))
 
   if (!pdfBase64 && !imageBase64) return clean
 
