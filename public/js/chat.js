@@ -525,9 +525,9 @@ function handlePdfSelect(event) {
           }
         }
       } catch (err) { console.warn('File upload failed:', err) }
-      fileEntry.uploading = false
-      renderAttachedFilesBar()
     }
+    fileEntry.uploading = false
+    renderAttachedFilesBar()
   }
   reader.readAsDataURL(file)
   event.target.value = ''
@@ -566,9 +566,9 @@ function handleImageSelect(event) {
           }
         }
       } catch (err) { console.warn('File upload failed:', err) }
-      fileEntry.uploading = false
-      renderAttachedFilesBar()
     }
+    fileEntry.uploading = false
+    renderAttachedFilesBar()
   }
   reader.readAsDataURL(file)
   event.target.value = ''
@@ -638,6 +638,7 @@ async function sendMessage() {
       if (!f.signedUrl) return null
       try {
         const fileRes = await fetch(f.signedUrl)
+        if (!fileRes.ok) return null
         const blob = await fileRes.blob()
         const base64 = await new Promise(resolve => {
           const reader = new FileReader()
