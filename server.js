@@ -72,6 +72,19 @@ app.get('/api/notes', requireAuth, (req, res) => notesHandler.listNotes(req, res
 app.post('/api/notes', requireAuth, (req, res) => notesHandler.createNote(req, res))
 app.patch('/api/notes/:id', requireAuth, (req, res) => notesHandler.updateNote(req, res))
 app.delete('/api/notes/:id', requireAuth, (req, res) => notesHandler.deleteNote(req, res))
+
+const { makeFilesHandler } = require('./src/files-handler')
+const { makeConvFilesHandler } = require('./src/conversation-files-handler')
+const filesHandler = makeFilesHandler()
+const convFilesHandler = makeConvFilesHandler()
+
+app.get('/api/files', requireAuth, (req, res) => filesHandler.listFiles(req, res))
+app.post('/api/files', requireAuth, (req, res) => filesHandler.uploadFile(req, res))
+app.delete('/api/files/:id', requireAuth, (req, res) => filesHandler.deleteFile(req, res))
+app.get('/api/files/:id/url', requireAuth, (req, res) => filesHandler.getSignedUrl(req, res))
+app.get('/api/conversations/:id/files', requireAuth, (req, res) => convFilesHandler.listConvFiles(req, res))
+app.post('/api/conversations/:id/files', requireAuth, (req, res) => convFilesHandler.linkFile(req, res))
+
 // 404 fallback for unmatched routes
 app.use((req, res) => {
   res.status(404).json({ error: 'Not found' })
