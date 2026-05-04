@@ -47,6 +47,8 @@ test('buildMessages wraps last user message with image block', () => {
     type: 'image',
     source: { type: 'base64', media_type: 'image/jpeg', data: 'imgdata==' }
   })
+  expect(result[0].content[1].type).toBe('text')
+  expect(result[0].content[1].text).toContain('Šta je ovo?')
 })
 
 test('buildMessages handles multiple files in order', () => {
@@ -74,10 +76,17 @@ test('buildMessages uses image hint when all files are images', () => {
   expect(text).toContain('image has been uploaded')
 })
 
-test('buildMessages fills empty content with placeholder', () => {
+test('buildMessages fills empty content with placeholder in clean map', () => {
   const input = [{ role: 'user', content: '' }]
   const result = buildMessages(input, [])
   expect(result[0].content).toBe('[Priložen fajl]')
+})
+
+test('buildMessages uses fallback text when content empty and files present', () => {
+  const input = [{ role: 'user', content: '' }]
+  const result = buildMessages(input, [{ base64: 'pdf==', mediaType: 'application/pdf', name: 'doc.pdf' }])
+  const textBlock = result[0].content.find(p => p.type === 'text')
+  expect(textBlock.text).toContain('Analiziraj priloženi materijal.')
 })
 
 test('SYSTEM_PROMPT contains key StudyBuddy instructions', () => {

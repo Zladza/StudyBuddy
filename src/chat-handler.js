@@ -95,14 +95,14 @@ function validateRequest(body) {
 }
 
 function buildMessages(messages, files = []) {
-  const clean = messages.map(m => ({ role: m.role, content: m.content || '[Priložen fajl]' }))
-  if (!files.length) return clean
+  const clean = messages.map(m => ({ role: m.role, content: m.content || '[Priložen fajl]', _original: m.content }))
+  if (!files.length) return clean.map(({ role, content }) => ({ role, content }))
 
   const hasPdf = files.some(f => f.mediaType === 'application/pdf')
 
   return clean.map((m, i) => {
     const isLastUser = m.role === 'user' && !clean.slice(i + 1).some(x => x.role === 'user')
-    if (!isLastUser) return m
+    if (!isLastUser) return { role: m.role, content: m.content }
 
     const parts = []
     for (const f of files) {
@@ -113,7 +113,7 @@ function buildMessages(messages, files = []) {
       }
     }
 
-    const userText = m.content.trim()
+    const userText = (m._original || '').trim()
     const fileHint = hasPdf
       ? '[MANDATORY: A document has been uploaded. You MUST read it fully and carefully before answering. Quote the relevant parts. Do not add information not present in the document.]'
       : '[MANDATORY: An image has been uploaded. You MUST transcribe ALL visible text exactly before answering — including handwritten text, numbers, formulas, and labels. Flag any unclear parts explicitly. Never guess at unclear content.]'
@@ -129,7 +129,8 @@ async function handleChat(req, res, anthropicClient) {
     return res.status(400).json({ error: validationError })
   }
 
-  const { messages, language, files = [] } = req.body
+  const { messages, language, files: rawFiles = [] } = req.body
+  const files = Array.isArray(rawFiles) ? rawFiles.filter(f => f && f.base64 && f.mediaType) : []
   const hasPdf = files.some(f => f.mediaType === 'application/pdf')
   const client = anthropicClient || new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
   const contextLimit = files.length > 0 ? 8 : 20
