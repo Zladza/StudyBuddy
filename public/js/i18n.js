@@ -163,6 +163,11 @@ const I18N = {
     fileAttachError: 'Greška pri prilaganju fajla',
     fileDeleted: 'Fajl obrisan',
     fileDeleteError: 'Greška pri brisanju fajla',
+    libraryLoading: 'Učitavanje...',
+    libraryPreview: 'Pregled',
+    libraryDownload: 'Preuzmi',
+    libraryAttach: 'Priloži u čet',
+    libraryDelete: 'Obriši',
   },
   en: {
     newChat: 'New conversation',
@@ -328,6 +333,11 @@ const I18N = {
     fileAttachError: 'Error attaching file',
     fileDeleted: 'File deleted',
     fileDeleteError: 'Error deleting file',
+    libraryLoading: 'Loading...',
+    libraryPreview: 'Preview',
+    libraryDownload: 'Download',
+    libraryAttach: 'Attach to chat',
+    libraryDelete: 'Delete',
   }
 }
 

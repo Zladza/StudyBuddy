@@ -463,7 +463,7 @@ function renderAttachedFilesBar() {
   bar.innerHTML = ''
   if (!attachedFiles.length) { bar.classList.add('hidden'); return }
   bar.classList.remove('hidden')
-  attachedFiles.forEach((f, idx) => {
+  attachedFiles.forEach(f => {
     const chip = document.createElement('div')
     chip.className = 'flex items-center gap-1.5 bg-slate-100 dark:bg-gray-700 rounded-lg px-3 py-1.5 flex-shrink-0 max-w-[200px]'
     const icon = f.mime_type === 'application/pdf' ? '📄' : '🖼️'
@@ -2380,7 +2380,11 @@ async function refreshLibrary() {
   if (!token) return
   const grid = document.getElementById('library-grid')
   const empty = document.getElementById('library-empty')
-  grid.innerHTML = '<p class="text-xs text-slate-400 col-span-2 py-4 text-center">Učitavanje...</p>'
+  const loadingP = document.createElement('p')
+  loadingP.className = 'text-xs text-slate-400 col-span-2 py-4 text-center'
+  loadingP.textContent = I18N[currentLang].libraryLoading
+  grid.innerHTML = ''
+  grid.appendChild(loadingP)
 
   try {
     const res = await fetch('/api/files', { headers: { Authorization: `Bearer ${token}` } })
@@ -2423,22 +2427,22 @@ async function refreshLibrary() {
 
       const previewBtn = document.createElement('button')
       previewBtn.className = 'text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded hover:bg-blue-100 dark:hover:bg-blue-900/50 transition'
-      previewBtn.textContent = 'Pregled'
+      previewBtn.textContent = I18N[currentLang].libraryPreview
       previewBtn.addEventListener('click', () => previewLibraryFile(f.id))
 
       const downloadBtn = document.createElement('button')
       downloadBtn.className = 'text-xs bg-slate-100 dark:bg-gray-700 text-slate-600 dark:text-gray-300 px-2 py-0.5 rounded hover:bg-slate-200 dark:hover:bg-gray-600 transition'
-      downloadBtn.textContent = 'Preuzmi'
+      downloadBtn.textContent = I18N[currentLang].libraryDownload
       downloadBtn.addEventListener('click', () => downloadLibraryFile(f.id, f.name))
 
       const attachBtn = document.createElement('button')
       attachBtn.className = 'text-xs bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 px-2 py-0.5 rounded hover:bg-green-100 dark:hover:bg-green-900/50 transition'
-      attachBtn.textContent = 'Priloži u čet'
+      attachBtn.textContent = I18N[currentLang].libraryAttach
       attachBtn.addEventListener('click', () => attachLibraryFile(f.id, f.name, f.mime_type, f.size))
 
       const deleteBtn = document.createElement('button')
       deleteBtn.className = 'text-xs bg-red-50 dark:bg-red-900/30 text-red-500 dark:text-red-400 px-2 py-0.5 rounded hover:bg-red-100 dark:hover:bg-red-900/50 transition'
-      deleteBtn.textContent = 'Obriši'
+      deleteBtn.textContent = I18N[currentLang].libraryDelete
       deleteBtn.addEventListener('click', () => deleteLibraryFile(f.id))
 
       btnRow.append(previewBtn, downloadBtn, attachBtn, deleteBtn)
