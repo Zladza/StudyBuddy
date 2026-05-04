@@ -159,6 +159,10 @@ const I18N = {
     noGroups: 'Još nema grupa.',
     backToChat: '← Nazad',
     groupInfo: 'Informacije o grupi',
+    fileAttached: 'Fajl priložen u čet',
+    fileAttachError: 'Greška pri prilaganju fajla',
+    fileDeleted: 'Fajl obrisan',
+    fileDeleteError: 'Greška pri brisanju fajla',
   },
   en: {
     newChat: 'New conversation',
@@ -320,6 +324,10 @@ const I18N = {
     noGroups: 'No groups yet.',
     backToChat: '← Back',
     groupInfo: 'Group info',
+    fileAttached: 'File attached to chat',
+    fileAttachError: 'Error attaching file',
+    fileDeleted: 'File deleted',
+    fileDeleteError: 'Error deleting file',
   }
 }
 

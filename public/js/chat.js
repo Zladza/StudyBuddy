@@ -477,7 +477,7 @@ function renderAttachedFilesBar() {
     const removeBtn = document.createElement('button')
     removeBtn.className = 'text-slate-400 hover:text-red-500 text-sm leading-none flex-shrink-0'
     removeBtn.textContent = '×'
-    removeBtn.onclick = () => { attachedFiles.splice(idx, 1); renderAttachedFilesBar() }
+    removeBtn.onclick = () => { attachedFiles = attachedFiles.filter(af => af !== f); renderAttachedFilesBar() }
     chip.appendChild(nameEl)
     chip.appendChild(removeBtn)
     bar.appendChild(chip)
@@ -517,8 +517,15 @@ function handlePdfSelect(event) {
           fileEntry.id = data.id
           fileEntry.signedUrl = data.signedUrl
           renderAttachedFilesBar()
+          if (currentConversationId) {
+            fetch(`/api/conversations/${currentConversationId}/files`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+              body: JSON.stringify({ fileId: data.id })
+            }).catch(() => {})
+          }
         }
-      } catch {}
+      } catch (err) { console.warn('File upload failed:', err) }
     }
   }
   reader.readAsDataURL(file)
@@ -550,8 +557,15 @@ function handleImageSelect(event) {
           fileEntry.id = data.id
           fileEntry.signedUrl = data.signedUrl
           renderAttachedFilesBar()
+          if (currentConversationId) {
+            fetch(`/api/conversations/${currentConversationId}/files`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+              body: JSON.stringify({ fileId: data.id })
+            }).catch(() => {})
+          }
         }
-      } catch {}
+      } catch (err) { console.warn('File upload failed:', err) }
     }
   }
   reader.readAsDataURL(file)
@@ -602,8 +616,7 @@ async function sendMessage() {
 
   const firstFile = attachedFiles[0]
   const displayText = text || (firstFile ? (firstFile.mime_type === 'application/pdf' ? '📎 ' : '🖼️ ') + firstFile.name : '')
-  const messageContent = text || displayText
-  const userMsg = { role: 'user', content: messageContent, hasPdf: attachedFiles.some(f => f.mime_type === 'application/pdf'), sentAt: Date.now() }
+  const userMsg = { role: 'user', content: displayText, hasPdf: attachedFiles.some(f => f.mime_type === 'application/pdf'), sentAt: Date.now() }
   currentMessages.push(userMsg)
   appendBubble('user', displayText, userMsg.sentAt)
 
@@ -630,7 +643,7 @@ async function sendMessage() {
           reader.readAsDataURL(blob)
         })
         return { ...f, base64 }
-      } catch { return null }
+      } catch (err) { console.warn('Failed to resolve file for send:', err); return null }
     }))
     const filesToSend = resolvedFiles.filter(Boolean).filter(f => f.base64)
 
@@ -664,16 +677,13 @@ async function sendMessage() {
     // Link stored files to conversation (non-blocking)
     if (currentConversationId) {
       const storedFiles = filesSnapshot.filter(f => f.id)
-      if (storedFiles.length) {
-        const linkToken = getAccessToken()
-        storedFiles.forEach(f => {
-          fetch(`/api/conversations/${currentConversationId}/files`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${linkToken}` },
-            body: JSON.stringify({ fileId: f.id })
-          }).catch(() => {})
-        })
-      }
+      storedFiles.forEach(f => {
+        fetch(`/api/conversations/${currentConversationId}/files`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ fileId: f.id })
+        }).catch(() => {})
+      })
     }
 
   } catch (err) {
@@ -2388,21 +2398,52 @@ async function refreshLibrary() {
       const sizeKB = (f.size / 1024).toFixed(0)
       const date = new Date(f.created_at).toLocaleDateString('sr-Latn-RS')
       const icon = f.mime_type === 'application/pdf' ? '📄' : '🖼️'
+
       const card = document.createElement('div')
       card.className = 'flex items-start gap-3 bg-slate-50 dark:bg-gray-750 rounded-xl p-3 border border-slate-100 dark:border-gray-700'
-      card.innerHTML = `
-        <span class="text-2xl flex-shrink-0">${icon}</span>
-        <div class="flex-1 min-w-0">
-          <p class="text-sm font-medium text-slate-800 dark:text-white truncate" title="${f.name}">${f.name}</p>
-          <p class="text-xs text-slate-400 dark:text-gray-500 mt-0.5">${sizeKB} KB · ${date}</p>
-          <div class="flex gap-2 mt-2 flex-wrap">
-            <button onclick="previewLibraryFile('${f.id}')" class="text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded hover:bg-blue-100 dark:hover:bg-blue-900/50 transition">Pregled</button>
-            <button onclick="downloadLibraryFile('${f.id}', '${f.name}')" class="text-xs bg-slate-100 dark:bg-gray-700 text-slate-600 dark:text-gray-300 px-2 py-0.5 rounded hover:bg-slate-200 dark:hover:bg-gray-600 transition">Preuzmi</button>
-            <button onclick="attachLibraryFile('${f.id}', '${f.name}', '${f.mime_type}', ${f.size})" class="text-xs bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 px-2 py-0.5 rounded hover:bg-green-100 dark:hover:bg-green-900/50 transition">Priloži u čet</button>
-            <button onclick="deleteLibraryFile('${f.id}')" class="text-xs bg-red-50 dark:bg-red-900/30 text-red-500 dark:text-red-400 px-2 py-0.5 rounded hover:bg-red-100 dark:hover:bg-red-900/50 transition">Obriši</button>
-          </div>
-        </div>
-      `
+
+      const iconSpan = document.createElement('span')
+      iconSpan.className = 'text-2xl flex-shrink-0'
+      iconSpan.textContent = icon
+
+      const info = document.createElement('div')
+      info.className = 'flex-1 min-w-0'
+
+      const nameP = document.createElement('p')
+      nameP.className = 'text-sm font-medium text-slate-800 dark:text-white truncate'
+      nameP.title = f.name
+      nameP.textContent = f.name
+
+      const metaP = document.createElement('p')
+      metaP.className = 'text-xs text-slate-400 dark:text-gray-500 mt-0.5'
+      metaP.textContent = `${sizeKB} KB · ${date}`
+
+      const btnRow = document.createElement('div')
+      btnRow.className = 'flex gap-2 mt-2 flex-wrap'
+
+      const previewBtn = document.createElement('button')
+      previewBtn.className = 'text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded hover:bg-blue-100 dark:hover:bg-blue-900/50 transition'
+      previewBtn.textContent = 'Pregled'
+      previewBtn.addEventListener('click', () => previewLibraryFile(f.id))
+
+      const downloadBtn = document.createElement('button')
+      downloadBtn.className = 'text-xs bg-slate-100 dark:bg-gray-700 text-slate-600 dark:text-gray-300 px-2 py-0.5 rounded hover:bg-slate-200 dark:hover:bg-gray-600 transition'
+      downloadBtn.textContent = 'Preuzmi'
+      downloadBtn.addEventListener('click', () => downloadLibraryFile(f.id, f.name))
+
+      const attachBtn = document.createElement('button')
+      attachBtn.className = 'text-xs bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 px-2 py-0.5 rounded hover:bg-green-100 dark:hover:bg-green-900/50 transition'
+      attachBtn.textContent = 'Priloži u čet'
+      attachBtn.addEventListener('click', () => attachLibraryFile(f.id, f.name, f.mime_type, f.size))
+
+      const deleteBtn = document.createElement('button')
+      deleteBtn.className = 'text-xs bg-red-50 dark:bg-red-900/30 text-red-500 dark:text-red-400 px-2 py-0.5 rounded hover:bg-red-100 dark:hover:bg-red-900/50 transition'
+      deleteBtn.textContent = 'Obriši'
+      deleteBtn.addEventListener('click', () => deleteLibraryFile(f.id))
+
+      btnRow.append(previewBtn, downloadBtn, attachBtn, deleteBtn)
+      info.append(nameP, metaP, btnRow)
+      card.append(iconSpan, info)
       grid.appendChild(card)
     })
   } catch {
@@ -2442,20 +2483,11 @@ async function attachLibraryFile(id, name, mimeType, size) {
     const urlRes = await fetch(`/api/files/${id}/url`, { headers: { Authorization: `Bearer ${token}` } })
     if (!urlRes.ok) return
     const { signedUrl } = await urlRes.json()
-
-    const fileRes = await fetch(signedUrl)
-    const blob = await fileRes.blob()
-    const base64 = await new Promise(resolve => {
-      const reader = new FileReader()
-      reader.onload = e => resolve(e.target.result.split(',')[1])
-      reader.readAsDataURL(blob)
-    })
-
-    attachedFiles.push({ id, name, mime_type: mimeType, size, signedUrl, base64 })
+    attachedFiles.push({ id, name, mime_type: mimeType, size, signedUrl, base64: null })
     renderAttachedFilesBar()
     closeLibrary()
-    showToast('Fajl priložen u čet', 'success')
-  } catch { showToast('Greška pri prilaganju fajla', 'error') }
+    showToast(I18N[currentLang].fileAttached, 'success')
+  } catch { showToast(I18N[currentLang].fileAttachError, 'error') }
 }
 
 async function deleteLibraryFile(id) {
@@ -2466,10 +2498,10 @@ async function deleteLibraryFile(id) {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` }
     })
-    if (!res.ok) { showToast('Greška pri brisanju', 'error'); return }
+    if (!res.ok) { showToast(I18N[currentLang].fileDeleteError, 'error'); return }
     attachedFiles = attachedFiles.filter(f => f.id !== id)
     renderAttachedFilesBar()
-    showToast('Fajl obrisan', 'success')
+    showToast(I18N[currentLang].fileDeleted, 'success')
     await refreshLibrary()
-  } catch { showToast('Greška pri brisanju', 'error') }
+  } catch { showToast(I18N[currentLang].fileDeleteError, 'error') }
 }
