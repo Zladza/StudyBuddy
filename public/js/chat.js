@@ -649,6 +649,9 @@ async function sendMessage() {
       } catch (err) { console.warn('Failed to resolve file for send:', err); return null }
     }))
     const filesToSend = resolvedFiles.filter(Boolean).filter(f => f.base64)
+    if (filesToSend.length < filesSnapshot.length) {
+      showToast(I18N[currentLang].fileResolveFailed, 'error')
+    }
 
     currentAbortController = new AbortController()
     const res = await fetch('/api/chat', {
