@@ -94,19 +94,27 @@ function validateRequest(body) {
   return null
 }
 
-function buildMessages(messages, pdfBase64, imageBase64, imageMediaType) {
+function buildMessages(messages, files = []) {
   const clean = messages.map(m => ({ role: m.role, content: m.content || '[Priložen fajl]' }))
+  if (!files.length) return clean
 
-  if (!pdfBase64 && !imageBase64) return clean
+  const hasPdf = files.some(f => f.mediaType === 'application/pdf')
 
   return clean.map((m, i) => {
     const isLastUser = m.role === 'user' && !clean.slice(i + 1).some(x => x.role === 'user')
     if (!isLastUser) return m
+
     const parts = []
-    if (pdfBase64) parts.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: pdfBase64 } })
-    if (imageBase64) parts.push({ type: 'image', source: { type: 'base64', media_type: imageMediaType || 'image/jpeg', data: imageBase64 } })
+    for (const f of files) {
+      if (f.mediaType === 'application/pdf') {
+        parts.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: f.base64 } })
+      } else {
+        parts.push({ type: 'image', source: { type: 'base64', media_type: f.mediaType, data: f.base64 } })
+      }
+    }
+
     const userText = m.content.trim()
-    const fileHint = pdfBase64
+    const fileHint = hasPdf
       ? '[MANDATORY: A document has been uploaded. You MUST read it fully and carefully before answering. Quote the relevant parts. Do not add information not present in the document.]'
       : '[MANDATORY: An image has been uploaded. You MUST transcribe ALL visible text exactly before answering — including handwritten text, numbers, formulas, and labels. Flag any unclear parts explicitly. Never guess at unclear content.]'
     const fullText = userText.length < 10 ? `${fileHint}\n${userText || 'Analiziraj priloženi materijal.'}` : `${fileHint}\n${userText}`
@@ -121,12 +129,12 @@ async function handleChat(req, res, anthropicClient) {
     return res.status(400).json({ error: validationError })
   }
 
-  const { messages, language, pdf, image, imageType } = req.body
+  const { messages, language, files = [] } = req.body
+  const hasPdf = files.some(f => f.mediaType === 'application/pdf')
   const client = anthropicClient || new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-  // When a file is attached, use fewer history messages so the model focuses on the document
-  const contextLimit = (pdf || image) ? 8 : 20
+  const contextLimit = files.length > 0 ? 8 : 20
   const recentMessages = messages.slice(-contextLimit)
-  const anthropicMessages = buildMessages(recentMessages, pdf || null, image || null, imageType || null)
+  const anthropicMessages = buildMessages(recentMessages, files)
 
   res.setHeader('Content-Type', 'text/event-stream')
   res.setHeader('Cache-Control', 'no-cache')
@@ -139,7 +147,7 @@ async function handleChat(req, res, anthropicClient) {
       system: SYSTEM_PROMPT,
       messages: anthropicMessages
     }
-    const stream = pdf
+    const stream = hasPdf
       ? client.beta.messages.stream({ ...streamParams, betas: ['pdfs-2024-09-25'] })
       : client.messages.stream(streamParams)
 
