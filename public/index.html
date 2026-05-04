@@ -280,6 +280,12 @@
       <span data-i18n="notesBtn">📝 Beleške</span>
     </button>
 
+    <!-- Library button -->
+    <button onclick="openLibrary()"
+      class="flex items-center gap-2 bg-white/10 hover:bg-white/20 rounded-lg px-3 py-2 text-white/80 text-xs font-medium transition">
+      <span>📁 Fajlovi</span>
+    </button>
+
     <!-- Disclaimer -->
     <p id="disclaimer" class="text-white/40 text-[10px] leading-relaxed px-1">
       Ne pišem gotove ispite ni seminarske radove.
@@ -355,18 +361,8 @@
     <!-- Group messages (shown instead of chat-messages when in a group) -->
     <div id="group-messages" class="hidden flex-1 overflow-y-auto p-4 sm:p-6 flex flex-col gap-3"></div>
 
-    <!-- PDF preview bar -->
-    <div id="pdf-bar" class="hidden px-4 py-2 bg-blue-50 dark:bg-blue-900/20 border-t border-blue-100 dark:border-blue-800 flex items-center gap-2 text-sm text-blue-700 dark:text-blue-300">
-      📎 <span id="pdf-name"></span>
-      <button onclick="removePdf()" class="ml-auto text-blue-500 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-200 text-xs font-medium" data-i18n="removePdf">Ukloni</button>
-    </div>
-
-    <!-- Image preview bar -->
-    <div id="image-bar" class="hidden px-4 py-2 bg-slate-50 dark:bg-gray-700/50 border-t border-slate-100 dark:border-gray-600 flex items-center gap-2">
-      <img id="image-preview" src="" alt="" class="w-8 h-8 rounded-lg object-cover shrink-0">
-      <span id="image-name" class="text-xs text-slate-600 dark:text-gray-300 truncate flex-1"></span>
-      <button onclick="removeImage()" class="text-slate-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 text-xs font-medium transition" data-i18n="removeImage">Ukloni</button>
-    </div>
+    <!-- Conversation files bar (unified attachment indicator) -->
+    <div id="conv-files-bar" class="hidden mx-4 mb-2 flex items-center gap-2 overflow-x-auto py-1"></div>
 
     <!-- Attach panel (shared by main chat and group chat) -->
     <div id="attach-panel" class="hidden mx-4 mb-2 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl shadow-lg py-1.5 overflow-hidden">
@@ -601,6 +597,20 @@
       <div id="group-info-members" class="flex flex-col gap-1.5 mb-4 max-h-48 overflow-y-auto"></div>
       <button onclick="openInviteModal();closeGroupInfoModal()" class="w-full accent-btn text-white py-2 rounded-lg text-sm font-medium transition mb-2" data-i18n="inviteTitle">Pozovi člana</button>
       <button onclick="leaveGroup()" class="w-full text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 py-2 rounded-lg transition" data-i18n="leaveGroup">Napusti grupu</button>
+    </div>
+  </div>
+
+  <!-- File Library Modal -->
+  <div id="library-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-lg shadow-2xl flex flex-col max-h-[80vh]">
+      <div class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-slate-100 dark:border-gray-700 flex-shrink-0">
+        <h2 class="font-bold text-lg text-slate-800 dark:text-white">Biblioteka fajlova</h2>
+        <button onclick="closeLibrary()" class="text-slate-400 hover:text-slate-700 dark:hover:text-gray-200 text-2xl leading-none">&times;</button>
+      </div>
+      <div id="library-empty" class="hidden flex-1 flex items-center justify-center text-slate-400 dark:text-gray-500 text-sm py-12">
+        Još nema fajlova u biblioteci.
+      </div>
+      <div id="library-grid" class="flex-1 overflow-y-auto p-4 grid grid-cols-1 gap-3"></div>
     </div>
   </div>
 
