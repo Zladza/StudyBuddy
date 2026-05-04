@@ -76,17 +76,19 @@ test('buildMessages uses image hint when all files are images', () => {
   expect(text).toContain('image has been uploaded')
 })
 
-test('buildMessages fills empty content with placeholder in clean map', () => {
+test('buildMessages fills empty content with Serbian placeholder in clean map', () => {
   const input = [{ role: 'user', content: '' }]
-  const result = buildMessages(input, [])
-  expect(result[0].content).toBe('[Priložen fajl]')
+  expect(buildMessages(input, [])[0].content).toBe('[Priložen fajl]')
+  expect(buildMessages(input, [], 'en')[0].content).toBe('[Attached file]')
 })
 
-test('buildMessages uses fallback text when content empty and files present', () => {
+test('buildMessages uses language-aware fallback text when content empty and files present', () => {
   const input = [{ role: 'user', content: '' }]
-  const result = buildMessages(input, [{ base64: 'pdf==', mediaType: 'application/pdf', name: 'doc.pdf' }])
-  const textBlock = result[0].content.find(p => p.type === 'text')
-  expect(textBlock.text).toContain('Analiziraj priloženi materijal.')
+  const files = [{ base64: 'pdf==', mediaType: 'application/pdf', name: 'doc.pdf' }]
+  const srText = buildMessages(input, files, 'sr')[0].content.find(p => p.type === 'text').text
+  const enText = buildMessages(input, files, 'en')[0].content.find(p => p.type === 'text').text
+  expect(srText).toContain('Analiziraj priloženi materijal.')
+  expect(enText).toContain('Analyze the attached material.')
 })
 
 test('SYSTEM_PROMPT contains key StudyBuddy instructions', () => {

@@ -465,12 +465,12 @@ function renderAttachedFilesBar() {
   bar.classList.remove('hidden')
   attachedFiles.forEach(f => {
     const chip = document.createElement('div')
-    chip.className = 'flex items-center gap-1.5 bg-slate-100 dark:bg-gray-700 rounded-lg px-3 py-1.5 flex-shrink-0 max-w-[200px]'
-    const icon = f.mime_type === 'application/pdf' ? '📄' : '🖼️'
+    chip.className = `flex items-center gap-1.5 bg-slate-100 dark:bg-gray-700 rounded-lg px-3 py-1.5 flex-shrink-0 max-w-[200px]${f.uploading ? ' opacity-60' : ''}`
+    const icon = f.uploading ? '⏳' : (f.mime_type === 'application/pdf' ? '📄' : '🖼️')
     const nameEl = document.createElement('span')
     nameEl.className = 'text-xs text-slate-700 dark:text-gray-200 truncate'
     nameEl.textContent = `${icon} ${f.name}`
-    if (f.signedUrl) {
+    if (f.signedUrl && !f.uploading) {
       nameEl.style.cursor = 'pointer'
       nameEl.onclick = () => window.open(f.signedUrl, '_blank')
     }
@@ -501,7 +501,7 @@ function handlePdfSelect(event) {
   const reader = new FileReader()
   reader.onload = async (e) => {
     const base64 = e.target.result.split(',')[1]
-    const fileEntry = { name: file.name, mime_type: 'application/pdf', base64, size: file.size, id: null, signedUrl: null }
+    const fileEntry = { name: file.name, mime_type: 'application/pdf', base64, size: file.size, id: null, signedUrl: null, uploading: true }
     attachedFiles.push(fileEntry)
     renderAttachedFilesBar()
     const token = getAccessToken()
@@ -516,7 +516,6 @@ function handlePdfSelect(event) {
           const data = await res.json()
           fileEntry.id = data.id
           fileEntry.signedUrl = data.signedUrl
-          renderAttachedFilesBar()
           if (currentConversationId) {
             fetch(`/api/conversations/${currentConversationId}/files`, {
               method: 'POST',
@@ -526,6 +525,8 @@ function handlePdfSelect(event) {
           }
         }
       } catch (err) { console.warn('File upload failed:', err) }
+      fileEntry.uploading = false
+      renderAttachedFilesBar()
     }
   }
   reader.readAsDataURL(file)
@@ -541,7 +542,7 @@ function handleImageSelect(event) {
   reader.onload = async (e) => {
     const dataUrl = e.target.result
     const base64 = dataUrl.split(',')[1]
-    const fileEntry = { name: file.name, mime_type: file.type, base64, size: file.size, id: null, signedUrl: null }
+    const fileEntry = { name: file.name, mime_type: file.type, base64, size: file.size, id: null, signedUrl: null, uploading: true }
     attachedFiles.push(fileEntry)
     renderAttachedFilesBar()
     const token = getAccessToken()
@@ -556,7 +557,6 @@ function handleImageSelect(event) {
           const data = await res.json()
           fileEntry.id = data.id
           fileEntry.signedUrl = data.signedUrl
-          renderAttachedFilesBar()
           if (currentConversationId) {
             fetch(`/api/conversations/${currentConversationId}/files`, {
               method: 'POST',
@@ -566,6 +566,8 @@ function handleImageSelect(event) {
           }
         }
       } catch (err) { console.warn('File upload failed:', err) }
+      fileEntry.uploading = false
+      renderAttachedFilesBar()
     }
   }
   reader.readAsDataURL(file)

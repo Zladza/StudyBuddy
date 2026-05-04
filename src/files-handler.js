@@ -11,6 +11,10 @@ function makeFilesHandler(supabaseClient) {
     if (!name || !mime_type || size == null || !base64) {
       return res.status(400).json({ error: 'name, mime_type, size, base64 required.' })
     }
+    const maxSize = mime_type === 'application/pdf' ? 20 * 1024 * 1024 : 5 * 1024 * 1024
+    if (size > maxSize) {
+      return res.status(400).json({ error: 'File too large.' })
+    }
 
     const { data: fileRow, error: insertError } = await db
       .from('files')

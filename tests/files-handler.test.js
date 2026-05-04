@@ -50,6 +50,24 @@ test('uploadFile returns 400 when required fields missing', async () => {
   expect(res.statusCode).toBe(400)
 })
 
+test('uploadFile returns 400 when PDF exceeds 20 MB', async () => {
+  const db = makeDbMock()
+  const { uploadFile } = makeFilesHandler(db)
+  const res = makeRes()
+  await uploadFile(makeReq({ name: 'big.pdf', mime_type: 'application/pdf', size: 21 * 1024 * 1024, base64: 'abc' }), res)
+  expect(res.statusCode).toBe(400)
+  expect(res.body.error).toBe('File too large.')
+})
+
+test('uploadFile returns 400 when image exceeds 5 MB', async () => {
+  const db = makeDbMock()
+  const { uploadFile } = makeFilesHandler(db)
+  const res = makeRes()
+  await uploadFile(makeReq({ name: 'big.jpg', mime_type: 'image/jpeg', size: 6 * 1024 * 1024, base64: 'abc' }), res)
+  expect(res.statusCode).toBe(400)
+  expect(res.body.error).toBe('File too large.')
+})
+
 test('uploadFile inserts row, uploads to storage, returns metadata', async () => {
   const db = makeDbMock({ fileRow: { id: 'file-123' } })
   const { uploadFile } = makeFilesHandler(db)
