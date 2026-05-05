@@ -96,3 +96,16 @@ test('SYSTEM_PROMPT contains key StudyBuddy instructions', () => {
   expect(SYSTEM_PROMPT).toContain('seminarski')
   expect(SYSTEM_PROMPT).toContain('finalni tekst pišeš ti')
 })
+
+test('validateRequest accepts valid provider values', () => {
+  expect(validateRequest({ messages: [], language: 'sr', provider: 'claude' })).toBeNull()
+  expect(validateRequest({ messages: [], language: 'sr', provider: 'openai' })).toBeNull()
+})
+
+test('validateRequest rejects invalid provider value', () => {
+  expect(validateRequest({ messages: [], language: 'sr', provider: 'gemini' })).toBe('Provider must be claude or openai.')
+})
+
+test('validateRequest accepts missing provider (defaults to claude)', () => {
+  expect(validateRequest({ messages: [], language: 'sr' })).toBeNull()
+})

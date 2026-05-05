@@ -91,6 +91,7 @@ SAFETY
 function validateRequest(body) {
   if (!body.messages || !Array.isArray(body.messages)) return 'Messages must be an array.'
   if (!['sr', 'en'].includes(body.language)) return 'Language must be sr or en.'
+  if (body.provider !== undefined && !['claude', 'openai'].includes(body.provider)) return 'Provider must be claude or openai.'
   return null
 }
 
