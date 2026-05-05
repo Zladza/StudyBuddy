@@ -1,6 +1,7 @@
 const { makeAuthMiddleware } = require('../src/auth-middleware')
 const { handleChat: handleClaude } = require('../src/chat-handler')
 const { handleChat: handleOpenAI } = require('../src/openai-chat-handler')
+const { handleChat: handleGemini } = require('../src/gemini-chat-handler')
 
 const requireAuth = makeAuthMiddleware()
 
@@ -18,5 +19,7 @@ module.exports = async (req, res) => {
     return
   }
   const provider = req.body?.provider || 'claude'
-  return provider === 'openai' ? handleOpenAI(req, res) : handleClaude(req, res)
+  if (provider === 'openai') return handleOpenAI(req, res)
+  if (provider === 'gemini') return handleGemini(req, res)
+  return handleClaude(req, res)
 }

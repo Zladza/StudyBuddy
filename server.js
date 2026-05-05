@@ -22,6 +22,7 @@ const { makeAuthMiddleware } = require('./src/auth-middleware')
 const { makeHistoryHandler } = require('./src/history-handler')
 const { handleChat: handleClaude } = require('./src/chat-handler')
 const { handleChat: handleOpenAI } = require('./src/openai-chat-handler')
+const { handleChat: handleGemini } = require('./src/gemini-chat-handler')
 
 const requireAuth = makeAuthMiddleware()
 const history = makeHistoryHandler()
@@ -48,7 +49,9 @@ app.post('/api/title', requireAuth, (req, res) => handleTitle(req, res))
 
 app.post('/api/chat', requireAuth, (req, res) => {
   const provider = req.body?.provider || 'claude'
-  return provider === 'openai' ? handleOpenAI(req, res) : handleClaude(req, res)
+  if (provider === 'openai') return handleOpenAI(req, res)
+  if (provider === 'gemini') return handleGemini(req, res)
+  return handleClaude(req, res)
 })
 
 const { makeShareHandler } = require('./src/share-handler')
