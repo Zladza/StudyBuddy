@@ -2,6 +2,7 @@
 
 // ── State ──────────────────────────────────────────────────────────────────
 let currentLang = localStorage.getItem('sb-lang') || (navigator.language.startsWith('sr') ? 'sr' : 'en')
+let currentProvider = localStorage.getItem('sb-provider') || 'claude'
 let currentConversationId = null
 let openConvMenuId = null
 let currentSubjectFilter = null
@@ -48,6 +49,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   updateProfileAvatar(username)
   applyLanguage(currentLang)
+  updateProviderButtons()
   updateColorSwatches()
   setupScrollButton()
   setupFlashcardKeyboard()
@@ -162,6 +164,7 @@ function applyLanguage(lang) {
   if (shareLinkEl && !shareLinkEl.value) shareLinkEl.placeholder = t.linkGenerating
 
   updateLanguageButtons()
+  updateProviderButtons()
   renderConversationList()
   renderSubjectsList()
   renderGroupsList()
@@ -175,6 +178,22 @@ function updateLanguageButtons() {
   const inactiveClass = 'flex-1 py-1.5 text-xs font-semibold rounded-md transition text-slate-500 dark:text-gray-400'
   srBtn.className = currentLang === 'sr' ? activeClass : inactiveClass
   enBtn.className = currentLang === 'en' ? activeClass : inactiveClass
+}
+
+function setProvider(provider) {
+  currentProvider = provider
+  localStorage.setItem('sb-provider', provider)
+  updateProviderButtons()
+}
+
+function updateProviderButtons() {
+  const claudeBtn = document.getElementById('settings-provider-claude')
+  const openaiBtn = document.getElementById('settings-provider-openai')
+  if (!claudeBtn || !openaiBtn) return
+  const activeClass = 'flex-1 py-1.5 text-xs font-semibold rounded-md transition bg-white dark:bg-gray-800 text-slate-800 dark:text-gray-100 shadow-sm'
+  const inactiveClass = 'flex-1 py-1.5 text-xs font-semibold rounded-md transition text-slate-500 dark:text-gray-400'
+  claudeBtn.className = currentProvider === 'claude' ? activeClass : inactiveClass
+  openaiBtn.className = currentProvider === 'openai' ? activeClass : inactiveClass
 }
 
 // ── Sidebar mobile ─────────────────────────────────────────────────────────
@@ -497,6 +516,7 @@ function insertTemplate(key) {
 function handlePdfSelect(event) {
   const file = event.target.files[0]
   if (!file) return
+  if (currentProvider === 'openai') { showError(I18N[currentLang].pdfNotSupportedOpenAI); return }
   if (file.size > 20 * 1024 * 1024) { showError(I18N[currentLang].fileTooLarge); return }
   const reader = new FileReader()
   reader.onload = async (e) => {
@@ -660,6 +680,7 @@ async function sendMessage() {
       body: JSON.stringify({
         messages: currentMessages.slice(0, -1).concat({ role: 'user', content: text }),
         language: currentLang,
+        provider: currentProvider,
         files: filesToSend.map(f => ({ base64: f.base64, mediaType: f.mime_type, name: f.name }))
       }),
       signal: currentAbortController.signal
