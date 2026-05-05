@@ -187,11 +187,11 @@ function setProvider(provider) {
 }
 
 function updateProviderButtons() {
-  const claudeBtn = document.getElementById('settings-provider-claude')
-  const openaiBtn = document.getElementById('settings-provider-openai')
+  const claudeBtn = document.getElementById('picker-claude')
+  const openaiBtn = document.getElementById('picker-openai')
   if (!claudeBtn || !openaiBtn) return
-  const activeClass = 'flex-1 py-1.5 text-xs font-semibold rounded-md transition bg-white dark:bg-gray-800 text-slate-800 dark:text-gray-100 shadow-sm'
-  const inactiveClass = 'flex-1 py-1.5 text-xs font-semibold rounded-md transition text-slate-500 dark:text-gray-400'
+  const activeClass = 'flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs transition bg-slate-100 dark:bg-gray-700 text-slate-800 dark:text-gray-100 font-semibold'
+  const inactiveClass = 'flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs transition text-slate-400 dark:text-gray-500 hover:text-slate-600 dark:hover:text-gray-300'
   claudeBtn.className = currentProvider === 'claude' ? activeClass : inactiveClass
   openaiBtn.className = currentProvider === 'openai' ? activeClass : inactiveClass
 }
