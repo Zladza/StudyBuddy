@@ -103,7 +103,11 @@ test('validateRequest accepts valid provider values', () => {
 })
 
 test('validateRequest rejects invalid provider value', () => {
-  expect(validateRequest({ messages: [], language: 'sr', provider: 'gemini' })).toBe('Provider must be claude or openai.')
+  expect(validateRequest({ messages: [], language: 'sr', provider: 'unknown' })).toBe('Provider must be claude, openai, or gemini.')
+})
+
+test('validateRequest accepts gemini provider', () => {
+  expect(validateRequest({ messages: [], language: 'sr', provider: 'gemini' })).toBeNull()
 })
 
 test('validateRequest accepts missing provider (defaults to claude)', () => {
