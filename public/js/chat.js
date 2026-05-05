@@ -184,6 +184,10 @@ function setProvider(provider) {
   currentProvider = provider
   localStorage.setItem('sb-provider', provider)
   updateProviderButtons()
+  if (provider === 'openai') {
+    attachedFiles = attachedFiles.filter(f => f.mime_type !== 'application/pdf')
+    renderAttachedFilesBar()
+  }
 }
 
 function updateProviderButtons() {
@@ -939,6 +943,7 @@ async function regenerateFrom(assistantRow) {
   scrollToBottom()
 
   isSending = true
+
   updateSendButton(true)
 
   try {
@@ -948,7 +953,8 @@ async function regenerateFrom(assistantRow) {
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({
         messages: currentMessages.map(m => ({ role: m.role, content: m.content })),
-        language: currentLang
+        language: currentLang,
+        provider: currentProvider
       }),
       signal: currentAbortController.signal
     })
@@ -1041,7 +1047,8 @@ async function resendFrom(userMsgIdx, text) {
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({
         messages: currentMessages.map(m => ({ role: m.role, content: m.content })),
-        language: currentLang
+        language: currentLang,
+        provider: currentProvider
       }),
       signal: currentAbortController.signal
     })
@@ -2207,6 +2214,7 @@ async function openGroup(id) {
   document.getElementById('group-messages').classList.remove('hidden')
   document.getElementById('main-input-bar').classList.add('hidden')
   document.getElementById('group-input-bar').classList.remove('hidden')
+  document.getElementById('model-picker-bar').classList.add('hidden')
   attachedFiles = []
   renderAttachedFilesBar()
   document.getElementById('back-to-chat-btn').classList.remove('hidden')
@@ -2224,6 +2232,7 @@ function closeGroupView() {
   document.getElementById('group-messages').classList.add('hidden')
   document.getElementById('main-input-bar').classList.remove('hidden')
   document.getElementById('group-input-bar').classList.add('hidden')
+  document.getElementById('model-picker-bar').classList.remove('hidden')
   document.getElementById('back-to-chat-btn').classList.add('hidden')
   document.getElementById('group-header-actions').classList.add('hidden')
   document.getElementById('conversation-title').textContent = currentConversationId
