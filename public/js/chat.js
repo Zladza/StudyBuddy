@@ -2036,7 +2036,7 @@ function renderSubjectsList() {
 }
 
 function openNewSubjectModal() {
-  if (subscriptionState.plan !== 'pro') { try { openPaywallModal('pro') } catch(e) {}; return }
+  if (subscriptionState.plan !== 'pro') { try { openPaywallModal('pro', null, I18N[currentLang].subjectsProDesc) } catch(e) {}; return }
   document.getElementById('new-subject-modal').classList.remove('hidden')
   setTimeout(() => document.getElementById('new-subject-input')?.focus(), 50)
 }
@@ -2061,7 +2061,7 @@ function saveNewSubject() {
 }
 
 function openMoveSubjectModal(convId) {
-  if (subscriptionState.plan !== 'pro') { try { openPaywallModal('pro') } catch(e) {}; return }
+  if (subscriptionState.plan !== 'pro') { try { openPaywallModal('pro', null, I18N[currentLang].subjectsProDesc) } catch(e) {}; return }
   const modal = document.getElementById('move-subject-modal')
   const pickList = document.getElementById('subject-pick-list')
   pickList.innerHTML = ''
@@ -2293,7 +2293,7 @@ function renderGroupsList() {
 }
 
 function openCreateGroupModal() {
-  if (subscriptionState.plan !== 'pro') { try { openPaywallModal('pro') } catch(e) {}; return }
+  if (subscriptionState.plan !== 'pro') { try { openPaywallModal('pro', null, I18N[currentLang].groupsProDesc) } catch(e) {}; return }
   document.getElementById('group-name-input').value = ''
   document.getElementById('create-group-modal').classList.remove('hidden')
   document.getElementById('group-name-input').focus()
@@ -2321,7 +2321,7 @@ async function createGroup() {
 }
 
 async function openGroup(id) {
-  if (subscriptionState.plan !== 'pro') { try { openPaywallModal('pro') } catch(e) {}; return }
+  if (subscriptionState.plan !== 'pro') { try { openPaywallModal('pro', null, I18N[currentLang].groupsProDesc) } catch(e) {}; return }
   currentGroupId = id
   const token = getAccessToken()
   const res = await fetch(`/api/groups/${id}`, { headers: { Authorization: `Bearer ${token}` } })
@@ -2701,9 +2701,6 @@ function updateSubscriptionUI() {
   document.getElementById('pro-badge').classList.toggle('hidden', !isPro)
   document.getElementById('free-badge').classList.toggle('hidden', isPro)
 
-  document.getElementById('subjects-outer').classList.toggle('hidden', !isPro)
-  document.getElementById('groups-outer').classList.toggle('hidden', !isPro)
-
   const usageEl = document.getElementById('usage-counter')
   const upgradeBtn = document.getElementById('upgrade-btn')
   if (isPro) {
@@ -2719,7 +2716,7 @@ function updateSubscriptionUI() {
   }
 }
 
-function openPaywallModal(type, limitType) {
+function openPaywallModal(type, limitType, customDesc) {
   const t = I18N[currentLang]
   const modal = document.getElementById('paywall-modal')
   const icon = document.getElementById('paywall-icon')
@@ -2734,7 +2731,7 @@ function openPaywallModal(type, limitType) {
   } else {
     icon.textContent = '⚡'
     title.textContent = t.paywallTitle
-    desc.textContent = t.paywallDesc
+    desc.textContent = customDesc || t.paywallDesc
   }
 
   cta.textContent = t.upgradeCta
