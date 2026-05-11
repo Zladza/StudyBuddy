@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//usr/local/bin/**)",
+      "Read(//opt/homebrew/bin/**)",
+      "Bash(export PATH=\"/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:$PATH\")",
+      "Bash(/Users/zlatko/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.7/skills/brainstorming/scripts/start-server.sh --project-dir /Users/zlatko/Desktop/StudyBuddy)",
+      "Bash(npm test *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(node *)",
+      "Bash(echo \"exit code: $?\")",
+      "Bash(cat)",
+      "Read(//tmp/**)",
+      "Bash(SUPABASE_URL=https://test.supabase.co SUPABASE_SERVICE_KEY=test SUPABASE_ANON_KEY=test ANTHROPIC_API_KEY=test node server.js)",
+      "Bash(curl -s http://localhost:3000/login.html)"
+    ]
+  }
+}

@@ -1,5 +1,5 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai')
-const { SYSTEM_PROMPT } = require('./chat-handler')
+const { SYSTEM_PROMPT, validateRequest } = require('./chat-handler')
 
 function buildGeminiHistory(messages, language = 'sr') {
   const emptyPlaceholder = language === 'en' ? '[Attached file]' : '[Priložen fajl]'
@@ -28,6 +28,8 @@ function buildGeminiParts(message, files = [], language = 'sr') {
 }
 
 async function handleChat(req, res, geminiClient) {
+  const validationError = validateRequest(req.body)
+  if (validationError) return res.status(400).json({ error: validationError })
   const { messages, language, files: rawFiles = [] } = req.body
   const files = Array.isArray(rawFiles) ? rawFiles.filter(f => f && f.base64 && f.mediaType) : []
   const genAI = geminiClient || new GoogleGenerativeAI(process.env.GEMINI_API_KEY)

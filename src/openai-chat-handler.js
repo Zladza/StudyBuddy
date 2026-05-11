@@ -1,5 +1,5 @@
 const OpenAI = require('openai')
-const { SYSTEM_PROMPT } = require('./chat-handler')
+const { SYSTEM_PROMPT, validateRequest } = require('./chat-handler')
 
 function buildOpenAIMessages(messages, files = [], language = 'sr') {
   const emptyPlaceholder = language === 'en' ? '[Attached file]' : '[Priložen fajl]'
@@ -26,6 +26,8 @@ function buildOpenAIMessages(messages, files = [], language = 'sr') {
 }
 
 async function handleChat(req, res, openaiClient) {
+  const validationError = validateRequest(req.body)
+  if (validationError) return res.status(400).json({ error: validationError })
   const { messages, language, files: rawFiles = [] } = req.body
   const files = Array.isArray(rawFiles) ? rawFiles.filter(f => f && f.base64 && f.mediaType) : []
   const client = openaiClient || new OpenAI({ apiKey: process.env.OPENAI_API_KEY })

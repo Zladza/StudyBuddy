@@ -48,3 +48,19 @@ create policy "users see own conversation files"
 create index if not exists idx_files_user        on public.files(user_id, created_at);
 create index if not exists idx_conv_files_conv   on public.conversation_files(conversation_id);
 create index if not exists idx_conv_files_file   on public.conversation_files(file_id);
+
+-- Storage RLS policies for study-files bucket
+create policy "users upload own files"
+  on storage.objects for insert
+  to authenticated
+  with check (bucket_id = 'study-files' and (storage.foldername(name))[1] = auth.uid()::text);
+
+create policy "users read own files"
+  on storage.objects for select
+  to authenticated
+  using (bucket_id = 'study-files' and (storage.foldername(name))[1] = auth.uid()::text);
+
+create policy "users delete own files"
+  on storage.objects for delete
+  to authenticated
+  using (bucket_id = 'study-files' and (storage.foldername(name))[1] = auth.uid()::text);
