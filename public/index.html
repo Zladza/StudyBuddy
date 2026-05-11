@@ -346,15 +346,13 @@
     </div>
 
     <!-- History -->
-    <div id="history-section" class="hidden flex-1 flex flex-col min-h-0">
+    <div id="history-section" class="flex-1 flex flex-col min-h-0">
       <p id="lbl-history" class="text-blue-300 text-[10px] font-semibold uppercase tracking-widest px-1 pt-1 pb-1" data-i18n="history">Istorija</p>
       <input id="history-search" type="text" placeholder="Pretraži istoriju..."
         class="w-full bg-white/10 text-white text-xs placeholder-white/40 rounded-lg px-2 py-1 outline-none border border-white/10 focus:border-white/30 mb-1"
         oninput="filterHistory(this.value)">
       <div id="history-list" class="flex flex-col gap-0.5 overflow-y-auto flex-1"></div>
     </div>
-
-    <div class="flex-1"></div>
 
     <!-- Notes button -->
     <button onclick="openNotes()"

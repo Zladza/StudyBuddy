@@ -351,8 +351,7 @@ function renderConversationList() {
   const list = document.getElementById('history-list')
   list.innerHTML = ''
 
-  if (conversations.length === 0) { section.classList.add('hidden'); return }
-  section.classList.remove('hidden')
+  if (conversations.length === 0) return
 
   const t = I18N[currentLang]
   const now = new Date()
