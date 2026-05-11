@@ -28,7 +28,7 @@ function buildOpenAIMessages(messages, files = [], language = 'sr') {
 async function handleChat(req, res, openaiClient) {
   const validationError = validateRequest(req.body)
   if (validationError) return res.status(400).json({ error: validationError })
-  const { messages, language, gender, files: rawFiles = [] } = req.body
+  const { messages, language, gender, faculty, studyYear, files: rawFiles = [] } = req.body
   const files = Array.isArray(rawFiles) ? rawFiles.filter(f => f && f.base64 && f.mediaType) : []
   const client = openaiClient || new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
   const contextLimit = files.length > 0 ? 8 : 20
@@ -43,7 +43,7 @@ async function handleChat(req, res, openaiClient) {
     const stream = await client.chat.completions.stream({
       model: 'gpt-4o',
       max_tokens: 8192,
-      messages: [{ role: 'system', content: buildSystemPrompt(gender) }, ...openaiMessages]
+      messages: [{ role: 'system', content: buildSystemPrompt(gender, faculty, studyYear) }, ...openaiMessages]
     })
 
     for await (const chunk of stream) {

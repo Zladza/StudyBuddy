@@ -132,6 +132,83 @@
   <div id="mobile-overlay" onclick="closeSidebar()"
     class="fixed inset-0 bg-black/40 z-20 hidden sm:hidden"></div>
 
+  <!-- Profile modal -->
+  <div id="profile-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target===this)closeProfileModal()">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-slate-200 dark:border-gray-700 w-full max-w-sm p-6">
+      <div class="flex items-center justify-between mb-5">
+        <h2 class="text-base font-semibold text-slate-800 dark:text-gray-100" data-i18n="profileTitle">Moj profil</h2>
+        <button onclick="closeProfileModal()" class="text-slate-400 hover:text-slate-600 dark:text-gray-500 dark:hover:text-gray-300 text-xl leading-none">×</button>
+      </div>
+
+      <div class="flex flex-col gap-3">
+        <!-- Name -->
+        <div>
+          <label class="text-xs font-medium text-slate-500 dark:text-gray-400 mb-1 block" data-i18n="profileName">Ime</label>
+          <input id="profile-name" type="text" maxlength="30"
+            class="w-full border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-slate-800 dark:text-gray-100 rounded-lg px-3 py-2 text-sm outline-none focus:border-[var(--ac)]">
+        </div>
+
+        <!-- Gender -->
+        <div>
+          <label class="text-xs font-medium text-slate-500 dark:text-gray-400 mb-1.5 block" data-i18n="genderLabel">Pol</label>
+          <div class="flex gap-2">
+            <label class="flex-1 flex items-center gap-2 border border-slate-200 dark:border-gray-600 rounded-lg px-3 py-2 cursor-pointer hover:bg-slate-50 dark:hover:bg-gray-700 transition">
+              <input type="radio" name="profile-gender" id="profile-gender-male" value="male" class="accent-[var(--ac)]">
+              <span class="text-sm text-slate-700 dark:text-gray-200" data-i18n="genderMale">Muško</span>
+            </label>
+            <label class="flex-1 flex items-center gap-2 border border-slate-200 dark:border-gray-600 rounded-lg px-3 py-2 cursor-pointer hover:bg-slate-50 dark:hover:bg-gray-700 transition">
+              <input type="radio" name="profile-gender" id="profile-gender-female" value="female" class="accent-[var(--ac)]">
+              <span class="text-sm text-slate-700 dark:text-gray-200" data-i18n="genderFemale">Žensko</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Email (read-only) -->
+        <div>
+          <label class="text-xs font-medium text-slate-500 dark:text-gray-400 mb-1 block" data-i18n="profileEmail">Email</label>
+          <input id="profile-email" type="email" readonly
+            class="w-full border border-slate-200 dark:border-gray-600 bg-slate-50 dark:bg-gray-750 text-slate-400 dark:text-gray-500 rounded-lg px-3 py-2 text-sm outline-none cursor-not-allowed">
+        </div>
+
+        <!-- Phone -->
+        <div>
+          <label class="text-xs font-medium text-slate-500 dark:text-gray-400 mb-1 block" data-i18n="profilePhone">Telefon</label>
+          <input id="profile-phone" type="tel" maxlength="20"
+            class="w-full border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-slate-800 dark:text-gray-100 rounded-lg px-3 py-2 text-sm outline-none focus:border-[var(--ac)]"
+            placeholder="+381 60 000 0000">
+        </div>
+
+        <!-- Faculty -->
+        <div>
+          <label class="text-xs font-medium text-slate-500 dark:text-gray-400 mb-1 block" data-i18n="profileFaculty">Fakultet / Univerzitet</label>
+          <input id="profile-faculty" type="text" maxlength="80"
+            class="w-full border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-slate-800 dark:text-gray-100 rounded-lg px-3 py-2 text-sm outline-none focus:border-[var(--ac)]"
+            placeholder="npr. Elektrotehnički fakultet">
+        </div>
+
+        <!-- Year of study -->
+        <div>
+          <label class="text-xs font-medium text-slate-500 dark:text-gray-400 mb-1 block" data-i18n="profileYear">Godina studija</label>
+          <select id="profile-year"
+            class="w-full border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-slate-800 dark:text-gray-100 rounded-lg px-3 py-2 text-sm outline-none focus:border-[var(--ac)]">
+            <option value="" data-i18n="yearNone">Nije odabrano</option>
+            <option value="1" data-i18n="year1">1. godina</option>
+            <option value="2" data-i18n="year2">2. godina</option>
+            <option value="3" data-i18n="year3">3. godina</option>
+            <option value="4" data-i18n="year4">4. godina</option>
+            <option value="master" data-i18n="yearMaster">Master</option>
+            <option value="phd" data-i18n="yearPhd">Doktorske studije</option>
+          </select>
+        </div>
+      </div>
+
+      <button id="profile-save-btn" onclick="saveProfile()"
+        class="accent-btn w-full text-white py-2 rounded-lg text-sm font-medium transition mt-5" data-i18n="profileSave">
+        Sačuvaj
+      </button>
+    </div>
+  </div>
+
   <!-- Settings modal -->
   <div id="settings-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="closeSettingsOnOverlay(event)">
     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-slate-200 dark:border-gray-700 w-full max-w-xs p-6">
@@ -322,6 +399,9 @@
       <div id="avatar-dropdown" class="hidden absolute left-0 bottom-full mb-1.5 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl shadow-lg py-1.5 w-44 z-20">
         <button id="upgrade-btn" onclick="openPaywallModal('pro');closeAvatarMenu()" class="hidden w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-gray-700 transition flex items-center gap-2">
           ⚡ <span data-i18n="upgradeCta">Nadogradi na Pro</span>
+        </button>
+        <button onclick="openProfileModal();closeAvatarMenu()" class="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-gray-700 transition flex items-center gap-2">
+          👤 <span data-i18n="profileBtn">Profil</span>
         </button>
         <button onclick="openSettings();closeAvatarMenu()" class="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-gray-700 transition flex items-center gap-2">
           ⚙️ <span data-i18n="settings">Podešavanja</span>

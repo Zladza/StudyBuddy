@@ -32,6 +32,10 @@ let groupRealtimeChannel = null
 let groupsList = []
 let currentUserId = null
 let currentGender = null
+let currentPhone = null
+let currentFaculty = null
+let currentYear = null
+let currentEmail = null
 let subscriptionState = { plan: 'free', messagesToday: 0, uploadsToday: 0, lsBuyUrl: '' }
 
 // ── Boot ───────────────────────────────────────────────────────────────────
@@ -40,10 +44,14 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (!session) return
 
   const email = session.user.email
+  currentEmail = email
   currentUserId = session.user.id
   const displayName = session.user.user_metadata?.display_name
   currentDisplayName = displayName || null
   currentGender = session.user.user_metadata?.gender || null
+  currentPhone = session.user.user_metadata?.phone || null
+  currentFaculty = session.user.user_metadata?.faculty || null
+  currentYear = session.user.user_metadata?.study_year || null
   const username = displayName || email.split('@')[0]
 
   document.getElementById('user-email') && (document.getElementById('user-email').textContent = email)
@@ -111,6 +119,64 @@ async function saveName() {
   currentGender = gender
   document.getElementById('name-modal').classList.add('hidden')
   document.getElementById('greeting').textContent = `${I18N[currentLang].greeting}, ${name}! 👋`
+  updateProfileAvatar(name)
+}
+
+// ── Profile modal ──────────────────────────────────────────────────────────
+function openProfileModal() {
+  document.getElementById('profile-name').value = currentDisplayName || ''
+  document.getElementById('profile-email').value = currentEmail || ''
+  document.getElementById('profile-phone').value = currentPhone || ''
+  document.getElementById('profile-faculty').value = currentFaculty || ''
+  document.getElementById('profile-year').value = currentYear || ''
+  const genderEl = document.getElementById(`profile-gender-${currentGender}`)
+  if (genderEl) genderEl.checked = true
+  document.getElementById('profile-modal').classList.remove('hidden')
+}
+
+function closeProfileModal() {
+  document.getElementById('profile-modal').classList.add('hidden')
+}
+
+async function saveProfile() {
+  const name = document.getElementById('profile-name').value.trim()
+  if (!name) { document.getElementById('profile-name').focus(); return }
+
+  const genderEl = document.querySelector('input[name="profile-gender"]:checked')
+  const gender = genderEl?.value || currentGender || null
+  const phone = document.getElementById('profile-phone').value.trim() || null
+  const faculty = document.getElementById('profile-faculty').value.trim() || null
+  const study_year = document.getElementById('profile-year').value || null
+
+  const btn = document.getElementById('profile-save-btn')
+  const t = I18N[currentLang]
+  btn.disabled = true
+  btn.textContent = t.profileSaving
+
+  if (!sb) await initAuth()
+  const { error } = await sb.auth.updateUser({ data: { display_name: name, gender, phone, faculty, study_year } })
+
+  if (error) {
+    showToast(t.aiError, 'error')
+    btn.disabled = false
+    btn.textContent = t.profileSave
+    return
+  }
+
+  currentDisplayName = name
+  currentGender = gender
+  currentPhone = phone
+  currentFaculty = faculty
+  currentYear = study_year
+
+  btn.textContent = t.profileSaved
+  setTimeout(() => {
+    btn.disabled = false
+    btn.textContent = t.profileSave
+    closeProfileModal()
+  }, 1000)
+
+  document.getElementById('greeting').textContent = `${t.greeting}, ${name}! 👋`
   updateProfileAvatar(name)
 }
 
@@ -697,6 +763,8 @@ async function sendMessage() {
       body: JSON.stringify({
         messages: currentMessages.slice(0, -1).concat({ role: 'user', content: text }),
         gender: currentGender,
+        faculty: currentFaculty,
+        studyYear: currentYear,
         language: currentLang,
         provider: currentProvider,
         files: filesToSend.map(f => ({ base64: f.base64, mediaType: f.mime_type, name: f.name }))

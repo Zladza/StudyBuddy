@@ -30,13 +30,13 @@ function buildGeminiParts(message, files = [], language = 'sr') {
 async function handleChat(req, res, geminiClient) {
   const validationError = validateRequest(req.body)
   if (validationError) return res.status(400).json({ error: validationError })
-  const { messages, language, gender, files: rawFiles = [] } = req.body
+  const { messages, language, gender, faculty, studyYear, files: rawFiles = [] } = req.body
   const files = Array.isArray(rawFiles) ? rawFiles.filter(f => f && f.base64 && f.mediaType) : []
   const genAI = geminiClient || new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
   const contextLimit = files.length > 0 ? 8 : 20
   const recentMessages = messages.slice(-contextLimit)
 
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash', systemInstruction: buildSystemPrompt(gender) })
+  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash', systemInstruction: buildSystemPrompt(gender, faculty, studyYear) })
   const history = buildGeminiHistory(recentMessages.slice(0, -1), language)
   const lastMessage = recentMessages[recentMessages.length - 1]
   const parts = buildGeminiParts(lastMessage, files, language)

@@ -132,14 +132,14 @@ async function handleChat(req, res, anthropicClient) {
     return res.status(400).json({ error: validationError })
   }
 
-  const { messages, language, gender, files: rawFiles = [] } = req.body
+  const { messages, language, gender, faculty, studyYear, files: rawFiles = [] } = req.body
   const files = Array.isArray(rawFiles) ? rawFiles.filter(f => f && f.base64 && f.mediaType) : []
   const hasPdf = files.some(f => f.mediaType === 'application/pdf')
   const client = anthropicClient || new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
   const contextLimit = files.length > 0 ? 8 : 20
   const recentMessages = messages.slice(-contextLimit)
   const anthropicMessages = buildMessages(recentMessages, files, language)
-  const systemPrompt = buildSystemPrompt(gender)
+  const systemPrompt = buildSystemPrompt(gender, faculty, studyYear)
 
   res.setHeader('Content-Type', 'text/event-stream')
   res.setHeader('Cache-Control', 'no-cache')
@@ -174,14 +174,15 @@ async function handleChat(req, res, anthropicClient) {
   }
 }
 
-function buildSystemPrompt(gender) {
-  if (gender === 'male') {
-    return SYSTEM_PROMPT + '\n\nKORISNIK: Student je muškog pola. Uvek ga oslovljavaj u muškom rodu (npr. "završio si", "spreman si", "bio si", "dobar").'
-  }
-  if (gender === 'female') {
-    return SYSTEM_PROMPT + '\n\nKORISNIK: Student je ženskog pola. Uvek je oslovljavaj u ženskom rodu (npr. "završila si", "spremna si", "bila si", "dobra").'
-  }
-  return SYSTEM_PROMPT
+function buildSystemPrompt(gender, faculty, studyYear) {
+  const lines = []
+  if (gender === 'male') lines.push('Student je muškog pola. Uvek ga oslovljavaj u muškom rodu (npr. "završio si", "spreman si", "bio si", "dobar").')
+  if (gender === 'female') lines.push('Student je ženskog pola. Uvek je oslovljavaj u ženskom rodu (npr. "završila si", "spremna si", "bila si", "dobra").')
+  if (faculty) lines.push(`Student studira na: ${faculty}.`)
+  const yearLabels = { '1': '1. godini', '2': '2. godini', '3': '3. godini', '4': '4. godini', master: 'master studijama', phd: 'doktorskim studijama' }
+  if (studyYear && yearLabels[studyYear]) lines.push(`Student je na ${yearLabels[studyYear]}.`)
+  if (!lines.length) return SYSTEM_PROMPT
+  return SYSTEM_PROMPT + '\n\nKORISNIK:\n' + lines.join('\n')
 }
 
 module.exports = { handleChat, validateRequest, buildMessages, SYSTEM_PROMPT, buildSystemPrompt }
