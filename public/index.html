@@ -19,6 +19,7 @@
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/build/highlight.min.js"></script>
+  <script src="https://app.lemonsqueezy.com/js/lemon.js" defer></script>
   <style>
     /* ── Accent color CSS variables ── */
     :root { --ac: #1F4E79; --ac-h: #1a4268; }
@@ -235,7 +236,9 @@
     <div class="flex items-center gap-2 px-1 mb-1">
       <div class="w-7 h-7 bg-blue-500 rounded-lg flex items-center justify-center text-sm shrink-0 cursor-pointer" onclick="closeSidebar()" title="Close">📚</div>
       <span class="text-white font-semibold text-sm">StudyBuddy</span>
-      <span class="text-blue-300 text-[10px] font-semibold tracking-wide flex-1">BETA</span>
+      <span class="text-blue-300 text-[10px] font-semibold tracking-wide">BETA</span>
+      <span id="pro-badge" class="hidden text-yellow-300 text-[10px] font-bold tracking-wide flex-1" data-i18n="proBadge">Pro</span>
+      <span id="free-badge" class="text-blue-300/50 text-[10px] font-semibold tracking-wide flex-1"></span>
       <button onclick="closeSidebar()" class="sm:hidden text-white/40 hover:text-white transition text-base leading-none">←</button>
     </div>
 
@@ -284,6 +287,22 @@
     <button onclick="openLibrary()"
       class="flex items-center gap-2 bg-white/10 hover:bg-white/20 rounded-lg px-3 py-2 text-white/80 text-xs font-medium transition">
       <span data-i18n="libraryBtn">📁 Fajlovi</span>
+    </button>
+
+    <!-- Usage counter (free users only) -->
+    <div id="usage-counter" class="hidden px-1">
+      <div class="flex justify-between text-[10px] text-white/50 mb-0.5">
+        <span data-i18n="usageMessages">Poruke danas</span>
+        <span id="usage-messages-count">0/10</span>
+      </div>
+      <div class="h-1 bg-white/10 rounded-full overflow-hidden">
+        <div id="usage-messages-bar" class="h-full bg-white/40 rounded-full transition-all" style="width:0%"></div>
+      </div>
+    </div>
+
+    <!-- Upgrade button (free users only) -->
+    <button id="upgrade-btn" onclick="openPaywallModal('pro')" class="hidden items-center gap-2 bg-yellow-400/20 hover:bg-yellow-400/30 border border-yellow-400/30 rounded-lg px-3 py-2 text-yellow-300 text-xs font-semibold transition">
+      ⚡ <span data-i18n="upgradeCta">Nadogradi na Pro</span>
     </button>
 
     <!-- Disclaimer -->
@@ -628,6 +647,17 @@
         <span data-i18n="libraryEmpty">Još nema fajlova u biblioteci.</span>
       </div>
       <div id="library-grid" class="flex-1 overflow-y-auto p-4 grid grid-cols-1 gap-3"></div>
+    </div>
+  </div>
+
+  <!-- Paywall / Limit modal -->
+  <div id="paywall-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target===this)closePaywallModal()">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-slate-200 dark:border-gray-700 w-full max-w-sm p-6 text-center">
+      <div class="text-4xl mb-3" id="paywall-icon">⚡</div>
+      <h2 id="paywall-title" class="text-base font-semibold text-slate-800 dark:text-gray-100 mb-2"></h2>
+      <p id="paywall-desc" class="text-sm text-slate-500 dark:text-gray-400 mb-5 leading-relaxed"></p>
+      <a id="paywall-cta-btn" href="#" class="lemonsqueezy-button block w-full accent-btn text-white py-2.5 rounded-xl text-sm font-semibold transition mb-2" style="text-decoration:none"></a>
+      <button onclick="closePaywallModal()" class="w-full text-xs text-slate-400 hover:text-slate-600 dark:text-gray-500 dark:hover:text-gray-300 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-gray-700 transition">✕</button>
     </div>
   </div>
 

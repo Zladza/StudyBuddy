@@ -31,6 +31,7 @@ let currentGroupData = null
 let groupRealtimeChannel = null
 let groupsList = []
 let currentUserId = null
+let subscriptionState = { plan: 'free', messagesToday: 0, uploadsToday: 0, lsBuyUrl: '' }
 
 // ── Boot ───────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async () => {
@@ -57,6 +58,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   setupOutsideClick()
   await loadConversations()
   await loadGroups()
+  fetchSubscription()
 
   if (!displayName && email !== 'preview@studybuddy.rs') {
     document.getElementById('name-modal').classList.remove('hidden')
@@ -694,6 +696,14 @@ async function sendMessage() {
 
     if (!res.ok) {
       if (res.status === 401) { window.location.href = '/login.html'; return }
+      if (res.status === 403) {
+        const body = await res.json().catch(() => ({}))
+        bubble.remove()
+        currentMessages.pop()
+        isSending = false; updateSendButton(false)
+        if (body.error === 'limit_reached') { openPaywallModal('limit', 'messages'); return }
+        openPaywallModal('pro'); return
+      }
       bubble.innerHTML = ''; bubble.textContent = I18N[currentLang].aiError
       isSending = false; updateSendButton(false); return
     }
@@ -1170,7 +1180,10 @@ async function generateFlashcards() {
         language: currentLang
       })
     })
-    if (!res.ok) { showToast(I18N[currentLang].aiError, 'error'); return }
+    if (!res.ok) {
+      if (res.status === 403) { openPaywallModal('pro'); return }
+      showToast(I18N[currentLang].aiError, 'error'); return
+    }
     const { cards } = await res.json()
     if (!cards || cards.length === 0) { showToast(I18N[currentLang].flashcardEmpty, 'info'); return }
     openFlashcardModal(cards)
@@ -1602,7 +1615,10 @@ async function generateQuiz() {
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ messages: currentMessages.map(m => ({ role: m.role, content: m.content })), language: currentLang })
     })
-    if (!res.ok) { showToast(I18N[currentLang].aiError, 'error'); return }
+    if (!res.ok) {
+      if (res.status === 403) { openPaywallModal('pro'); return }
+      showToast(I18N[currentLang].aiError, 'error'); return
+    }
     const { questions } = await res.json()
     if (!questions || questions.length === 0) { showToast(I18N[currentLang].quizEmpty, 'info'); return }
     openQuizModal(questions)
@@ -1728,7 +1744,10 @@ async function generateGlossary() {
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ messages: currentMessages.map(m => ({ role: m.role, content: m.content })), language: currentLang })
     })
-    if (!res.ok) { showToast(I18N[currentLang].aiError, 'error'); return }
+    if (!res.ok) {
+      if (res.status === 403) { openPaywallModal('pro'); return }
+      showToast(I18N[currentLang].aiError, 'error'); return
+    }
     const { terms } = await res.json()
     if (!terms || terms.length === 0) { showToast(I18N[currentLang].glossaryEmpty, 'info'); return }
     openGlossaryModal(terms)
@@ -1768,7 +1787,10 @@ async function generateSummary() {
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ messages: currentMessages.map(m => ({ role: m.role, content: m.content })), language: currentLang })
     })
-    if (!res.ok) { showToast(I18N[currentLang].aiError, 'error'); return }
+    if (!res.ok) {
+      if (res.status === 403) { openPaywallModal('pro'); return }
+      showToast(I18N[currentLang].aiError, 'error'); return
+    }
     const { summary } = await res.json()
     if (!summary) { showToast(I18N[currentLang].summaryEmpty, 'info'); return }
     currentSummary = summary
@@ -2546,4 +2568,75 @@ async function deleteLibraryFile(id) {
     showToast(I18N[currentLang].fileDeleted, 'success')
     await refreshLibrary()
   } catch { showToast(I18N[currentLang].fileDeleteError, 'error') }
+}
+
+// ── Subscription / plan ────────────────────────────────────────────────────
+async function fetchSubscription() {
+  const token = getAccessToken()
+  if (!token) return
+  try {
+    const res = await fetch('/api/subscription', { headers: { Authorization: `Bearer ${token}` } })
+    if (!res.ok) return
+    subscriptionState = await res.json()
+    updateSubscriptionUI()
+  } catch { /* non-critical */ }
+}
+
+function updateSubscriptionUI() {
+  const { plan, messagesToday, lsBuyUrl } = subscriptionState
+  const t = I18N[currentLang]
+  const isPro = plan === 'pro'
+
+  document.getElementById('pro-badge').classList.toggle('hidden', !isPro)
+  document.getElementById('free-badge').classList.toggle('hidden', isPro)
+
+  const usageEl = document.getElementById('usage-counter')
+  const upgradeBtn = document.getElementById('upgrade-btn')
+  if (isPro) {
+    usageEl.classList.add('hidden')
+    upgradeBtn.classList.remove('flex')
+    upgradeBtn.classList.add('hidden')
+  } else {
+    usageEl.classList.remove('hidden')
+    upgradeBtn.classList.remove('hidden')
+    upgradeBtn.classList.add('flex')
+    const LIMIT = 10
+    const count = Math.min(messagesToday, LIMIT)
+    document.getElementById('usage-messages-count').textContent = `${count}/${LIMIT}`
+    document.getElementById('usage-messages-bar').style.width = `${Math.min(count / LIMIT * 100, 100)}%`
+    if (lsBuyUrl) upgradeBtn.onclick = () => openPaywallModal('pro')
+  }
+}
+
+function openPaywallModal(type, limitType) {
+  const t = I18N[currentLang]
+  const modal = document.getElementById('paywall-modal')
+  const icon = document.getElementById('paywall-icon')
+  const title = document.getElementById('paywall-title')
+  const desc = document.getElementById('paywall-desc')
+  const cta = document.getElementById('paywall-cta-btn')
+
+  if (type === 'limit') {
+    icon.textContent = '⏱️'
+    title.textContent = t.limitTitle
+    desc.textContent = limitType === 'uploads' ? t.limitDescUploads : t.limitDescMessages
+  } else {
+    icon.textContent = '⚡'
+    title.textContent = t.paywallTitle
+    desc.textContent = t.paywallDesc
+  }
+
+  cta.textContent = t.upgradeCta
+  const url = subscriptionState.lsBuyUrl
+  if (url) {
+    const uid = currentUserId || ''
+    cta.href = `${url}?checkout[custom][user_id]=${encodeURIComponent(uid)}`
+  }
+
+  modal.classList.remove('hidden')
+  if (window.LemonSqueezy) window.LemonSqueezy.Setup()
+}
+
+function closePaywallModal() {
+  document.getElementById('paywall-modal').classList.add('hidden')
 }
