@@ -2594,17 +2594,14 @@ function updateSubscriptionUI() {
   const upgradeBtn = document.getElementById('upgrade-btn')
   if (isPro) {
     usageEl.classList.add('hidden')
-    upgradeBtn.classList.remove('flex')
     upgradeBtn.classList.add('hidden')
   } else {
     usageEl.classList.remove('hidden')
     upgradeBtn.classList.remove('hidden')
-    upgradeBtn.classList.add('flex')
     const LIMIT = 10
     const count = Math.min(messagesToday, LIMIT)
     document.getElementById('usage-messages-count').textContent = `${count}/${LIMIT}`
     document.getElementById('usage-messages-bar').style.width = `${Math.min(count / LIMIT * 100, 100)}%`
-    if (lsBuyUrl) upgradeBtn.onclick = () => openPaywallModal('pro')
   }
 }
 
