@@ -208,6 +208,15 @@ const I18N = {
     resetSuccessMsg: 'Lozinka uspešno promenjena! Preusmeravamo te...',
     createAccount: 'Napravi nalog',
     creatingAccount: 'Pravim nalog...',
+    paywallTitle: 'Pro funkcija',
+    paywallDesc: 'Ova funkcija je dostupna samo Pro korisnicima.',
+    upgradeCta: 'Nadogradi na Pro',
+    limitTitle: 'Dostigao si dnevni limit',
+    limitDescMessages: 'Besplatni plan: 10 poruka dnevno. Nadogradi za neograničene poruke.',
+    limitDescUploads: 'Besplatni plan: 1 upload dnevno. Nadogradi za neograničene uploade.',
+    usageMessages: 'Poruke danas',
+    usageUploads: 'Uploadi danas',
+    proBadge: 'Pro',
   },
   en: {
     newChat: 'New conversation',
@@ -418,6 +427,15 @@ const I18N = {
     resetSuccessMsg: 'Password changed! Redirecting...',
     createAccount: 'Create account',
     creatingAccount: 'Creating account...',
+    paywallTitle: 'Pro feature',
+    paywallDesc: 'This feature is available to Pro users only.',
+    upgradeCta: 'Upgrade to Pro',
+    limitTitle: 'Daily limit reached',
+    limitDescMessages: 'Free plan: 10 messages per day. Upgrade for unlimited messages.',
+    limitDescUploads: 'Free plan: 1 upload per day. Upgrade for unlimited uploads.',
+    usageMessages: 'Messages today',
+    usageUploads: 'Uploads today',
+    proBadge: 'Pro',
   }
 }
 
