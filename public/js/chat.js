@@ -67,7 +67,6 @@ window.addEventListener('DOMContentLoaded', async () => {
   setupSwipeSidebar()
   setupOutsideClick()
   await loadConversations()
-  await loadGroups()
   fetchSubscription()
 
   if ((!displayName || !currentGender) && email !== 'preview@studybuddy.rs') {
@@ -2037,6 +2036,7 @@ function renderSubjectsList() {
 }
 
 function openNewSubjectModal() {
+  if (subscriptionState.plan !== 'pro') { try { openPaywallModal('pro') } catch(e) {}; return }
   document.getElementById('new-subject-modal').classList.remove('hidden')
   setTimeout(() => document.getElementById('new-subject-input')?.focus(), 50)
 }
@@ -2061,6 +2061,7 @@ function saveNewSubject() {
 }
 
 function openMoveSubjectModal(convId) {
+  if (subscriptionState.plan !== 'pro') { try { openPaywallModal('pro') } catch(e) {}; return }
   const modal = document.getElementById('move-subject-modal')
   const pickList = document.getElementById('subject-pick-list')
   pickList.innerHTML = ''
@@ -2292,6 +2293,7 @@ function renderGroupsList() {
 }
 
 function openCreateGroupModal() {
+  if (subscriptionState.plan !== 'pro') { try { openPaywallModal('pro') } catch(e) {}; return }
   document.getElementById('group-name-input').value = ''
   document.getElementById('create-group-modal').classList.remove('hidden')
   document.getElementById('group-name-input').focus()
@@ -2319,6 +2321,7 @@ async function createGroup() {
 }
 
 async function openGroup(id) {
+  if (subscriptionState.plan !== 'pro') { try { openPaywallModal('pro') } catch(e) {}; return }
   currentGroupId = id
   const token = getAccessToken()
   const res = await fetch(`/api/groups/${id}`, { headers: { Authorization: `Bearer ${token}` } })
@@ -2686,6 +2689,7 @@ async function fetchSubscription() {
     if (!res.ok) return
     subscriptionState = await res.json()
     updateSubscriptionUI()
+    if (subscriptionState.plan === 'pro') await loadGroups()
   } catch { /* non-critical */ }
 }
 
@@ -2696,6 +2700,9 @@ function updateSubscriptionUI() {
 
   document.getElementById('pro-badge').classList.toggle('hidden', !isPro)
   document.getElementById('free-badge').classList.toggle('hidden', isPro)
+
+  document.getElementById('subjects-outer').classList.toggle('hidden', !isPro)
+  document.getElementById('groups-outer').classList.toggle('hidden', !isPro)
 
   const usageEl = document.getElementById('usage-counter')
   const upgradeBtn = document.getElementById('upgrade-btn')
