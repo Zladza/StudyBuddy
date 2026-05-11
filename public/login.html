@@ -30,54 +30,48 @@
       </div>
 
       <!-- Tagline -->
-      <h1 class="text-white text-2xl font-bold leading-snug mb-3">
-        Tvoj AI kolega<br>za učenje.
-      </h1>
-      <p class="text-blue-200 text-sm leading-relaxed mb-10">
-        Postavljaj pitanja, spremi se za ispite i razumi gradivo brže nego ikad.
-      </p>
+      <h1 id="login-tagline" class="text-white text-2xl font-bold leading-snug mb-3"></h1>
+      <p id="login-subtitle" class="text-blue-200 text-sm leading-relaxed mb-10"></p>
 
       <!-- Features -->
       <div class="flex flex-col gap-5">
         <div class="feature-item">
           <span class="text-xl mt-0.5">🧠</span>
           <div>
-            <p class="text-white text-sm font-semibold">Kviz i kartice</p>
-            <p class="text-blue-300 text-xs mt-0.5 leading-relaxed">AI pravi testove i kartice iz tvojih materijala</p>
+            <p id="feat1-title" class="text-white text-sm font-semibold"></p>
+            <p id="feat1-desc" class="text-blue-300 text-xs mt-0.5 leading-relaxed"></p>
           </div>
         </div>
         <div class="feature-item">
           <span class="text-xl mt-0.5">📄</span>
           <div>
-            <p class="text-white text-sm font-semibold">Upload PDF skripte</p>
-            <p class="text-blue-300 text-xs mt-0.5 leading-relaxed">Priloži bilo koji dokument i pitaj šta god hoćeš</p>
+            <p id="feat2-title" class="text-white text-sm font-semibold"></p>
+            <p id="feat2-desc" class="text-blue-300 text-xs mt-0.5 leading-relaxed"></p>
           </div>
         </div>
         <div class="feature-item">
           <span class="text-xl mt-0.5">📋</span>
           <div>
-            <p class="text-white text-sm font-semibold">Rezimei i pojmovnik</p>
-            <p class="text-blue-300 text-xs mt-0.5 leading-relaxed">Jednim klikom dobij strukturirani rezime razgovora</p>
+            <p id="feat3-title" class="text-white text-sm font-semibold"></p>
+            <p id="feat3-desc" class="text-blue-300 text-xs mt-0.5 leading-relaxed"></p>
           </div>
         </div>
         <div class="feature-item">
           <span class="text-xl mt-0.5">💬</span>
           <div>
-            <p class="text-white text-sm font-semibold">Istorija razgovora</p>
-            <p class="text-blue-300 text-xs mt-0.5 leading-relaxed">Sve konverzacije sačuvane, nastavi gde si stao</p>
+            <p id="feat4-title" class="text-white text-sm font-semibold"></p>
+            <p id="feat4-desc" class="text-blue-300 text-xs mt-0.5 leading-relaxed"></p>
           </div>
         </div>
         <div class="feature-item">
           <span class="text-xl mt-0.5">👥</span>
           <div>
-            <p class="text-white text-sm font-semibold">Grupni čet</p>
-            <p class="text-blue-300 text-xs mt-0.5 leading-relaxed">Uči sa kolegama i taguj @AI kad ti zatreba pomoć</p>
+            <p id="feat5-title" class="text-white text-sm font-semibold"></p>
+            <p id="feat5-desc" class="text-blue-300 text-xs mt-0.5 leading-relaxed"></p>
           </div>
         </div>
       </div>
     </div>
-
-    <p class="text-blue-400 text-xs">Napravljen za studente u Srbiji 🇷🇸</p>
   </div>
 
   <!-- Right panel -->
@@ -86,6 +80,10 @@
     <!-- Theme toggle -->
     <button onclick="toggleTheme()" id="theme-btn"
       class="absolute top-4 right-4 w-9 h-9 rounded-full bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 flex items-center justify-center text-base shadow-sm hover:shadow-md transition">
+    </button>
+    <!-- Language toggle -->
+    <button onclick="toggleLoginLang()" id="lang-btn"
+      class="absolute top-4 right-16 h-9 px-2.5 rounded-full bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 flex items-center justify-center text-xs font-semibold text-slate-600 dark:text-gray-300 shadow-sm hover:shadow-md transition">
     </button>
 
     <!-- Mobile brand (visible only on small screens) -->
@@ -97,8 +95,8 @@
 
     <div class="w-full max-w-sm">
       <div class="text-center mb-6 lg:text-left">
-        <h2 class="text-xl font-bold text-slate-800 dark:text-gray-100">Dobrodošao nazad 👋</h2>
-        <p class="text-sm text-slate-500 dark:text-gray-400 mt-1">Prijavi se ili napravi novi nalog</p>
+        <h2 id="login-welcome" class="text-xl font-bold text-slate-800 dark:text-gray-100"></h2>
+        <p id="login-welcome-sub" class="text-sm text-slate-500 dark:text-gray-400 mt-1"></p>
       </div>
 
       <!-- Card -->
@@ -133,17 +131,16 @@
             class="w-full text-white py-2.5 rounded-lg text-sm font-semibold transition" style="background:#1F4E79">
             Prijavi se
           </button>
-          <button type="button" onclick="showForgotPassword()"
+          <button type="button" id="forgot-pw-link" onclick="showForgotPassword()"
             class="w-full text-xs text-slate-400 dark:text-gray-500 hover:text-slate-600 dark:hover:text-gray-300 transition text-center pt-1">
-            Zaboravio/la si lozinku?
           </button>
         </form>
 
         <!-- Forgot password form -->
         <div id="form-forgot" class="hidden space-y-4">
           <div class="text-center mb-2">
-            <p class="text-sm font-medium text-slate-700 dark:text-gray-200">Resetuj lozinku</p>
-            <p class="text-xs text-slate-400 dark:text-gray-500 mt-1">Unesite email i poslaćemo ti link.</p>
+            <p id="reset-title" class="text-sm font-medium text-slate-700 dark:text-gray-200"></p>
+            <p id="reset-sub" class="text-xs text-slate-400 dark:text-gray-500 mt-1"></p>
           </div>
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-gray-200 mb-1">Email</label>
@@ -157,17 +154,16 @@
             id="forgot-btn" class="w-full text-white py-2.5 rounded-lg text-sm font-semibold transition" style="background:#1F4E79">
             Pošalji link
           </button>
-          <button type="button" onclick="showLoginForm()"
+          <button type="button" id="back-login-btn" onclick="showLoginForm()"
             class="w-full text-xs text-slate-400 dark:text-gray-500 hover:text-slate-600 dark:hover:text-gray-300 transition text-center pt-1">
-            ← Nazad na prijavu
           </button>
         </div>
 
         <!-- Set new password form (shown after clicking reset link) -->
         <div id="form-reset" class="hidden space-y-4">
           <div class="text-center mb-2">
-            <p class="text-sm font-semibold text-slate-700 dark:text-gray-200">Nova lozinka</p>
-            <p class="text-xs text-slate-400 dark:text-gray-500 mt-1">Unesite novu lozinku za vaš nalog.</p>
+            <p id="newpw-title" class="text-sm font-semibold text-slate-700 dark:text-gray-200"></p>
+            <p id="newpw-sub" class="text-xs text-slate-400 dark:text-gray-500 mt-1"></p>
           </div>
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-gray-200 mb-1">Nova lozinka</label>
@@ -221,6 +217,47 @@
   <script src="/js/auth.js"></script>
   <script src="/js/theme.js"></script>
   <script>
+    let loginLang = localStorage.getItem('sb-lang') || 'sr'
+
+    function applyLoginLang() {
+      const t = I18N[loginLang]
+      const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val }
+      set('login-tagline', t.loginTagline)
+      set('login-subtitle', t.loginSubtitle)
+      set('feat1-title', t.feature1Title); set('feat1-desc', t.feature1Desc)
+      set('feat2-title', t.feature2Title); set('feat2-desc', t.feature2Desc)
+      set('feat3-title', t.feature3Title); set('feat3-desc', t.feature3Desc)
+      set('feat4-title', t.feature4Title); set('feat4-desc', t.feature4Desc)
+      set('feat5-title', t.feature5Title); set('feat5-desc', t.feature5Desc)
+      set('login-welcome', t.welcomeBack)
+      set('login-welcome-sub', t.welcomeSub)
+      set('reset-title', t.resetPassword)
+      set('reset-sub', t.resetPasswordSub)
+      set('newpw-title', t.newPasswordTitle)
+      set('newpw-sub', t.newPasswordSub)
+      const tabLogin = document.getElementById('tab-login')
+      const tabReg = document.getElementById('tab-register')
+      if (tabLogin && !tabLogin.disabled) tabLogin.textContent = t.loginTab
+      if (tabReg) tabReg.textContent = t.registerTab
+      const loginBtn = document.getElementById('login-btn')
+      if (loginBtn && !loginBtn.disabled) loginBtn.textContent = t.loginBtn
+      const forgotBtn = document.getElementById('forgot-btn')
+      if (forgotBtn && !forgotBtn.disabled) forgotBtn.textContent = t.sendLink
+      const resetBtn = document.getElementById('reset-btn')
+      if (resetBtn && !resetBtn.disabled) resetBtn.textContent = t.savePassword
+      const registerBtn = document.getElementById('register-btn')
+      if (registerBtn && !registerBtn.disabled) registerBtn.textContent = t.createAccount
+      set('forgot-pw-link', t.forgotPassword)
+      set('back-login-btn', '← ' + t.backToLogin)
+      set('lang-btn', loginLang === 'sr' ? 'ENG' : 'SRP')
+    }
+
+    function toggleLoginLang() {
+      loginLang = loginLang === 'sr' ? 'en' : 'sr'
+      localStorage.setItem('sb-lang', loginLang)
+      applyLoginLang()
+    }
+
     function updateThemeBtn() {
       const btn = document.getElementById('theme-btn')
       if (btn) btn.textContent = getCurrentTheme() === 'dark' ? '☀️' : '🌙'
@@ -243,6 +280,8 @@
       })()
     }
 
+    applyLoginLang()
+
     function showTab(tab) {
       const isLogin = tab === 'login'
       document.getElementById('form-login').classList.toggle('hidden', !isLogin)
@@ -255,10 +294,11 @@
 
     async function handleLogin(e) {
       e.preventDefault()
+      const t = I18N[loginLang]
       const btn = document.getElementById('login-btn')
       const errEl = document.getElementById('login-error')
       btn.disabled = true
-      btn.textContent = 'Prijavljujem...'
+      btn.textContent = t.loggingIn
       errEl.classList.add('hidden')
 
       const { error } = await signIn(
@@ -267,10 +307,10 @@
       )
 
       if (error) {
-        errEl.textContent = I18N.sr.authError
+        errEl.textContent = t.authError
         errEl.classList.remove('hidden')
         btn.disabled = false
-        btn.textContent = 'Prijavi se'
+        btn.textContent = t.loginBtn
       } else {
         window.location.href = '/'
       }
@@ -289,6 +329,7 @@
     }
 
     async function handleForgotPassword() {
+      const t = I18N[loginLang]
       const btn = document.getElementById('forgot-btn')
       const errEl = document.getElementById('forgot-error')
       const successEl = document.getElementById('forgot-success')
@@ -298,7 +339,7 @@
       errEl.classList.add('hidden')
       successEl.classList.add('hidden')
       btn.disabled = true
-      btn.textContent = 'Šaljem...'
+      btn.textContent = t.sendingReset
 
       if (!sb) await initAuth()
       const { error } = await sb.auth.resetPasswordForEmail(email, {
@@ -309,12 +350,12 @@
         errEl.textContent = error.message
         errEl.classList.remove('hidden')
         btn.disabled = false
-        btn.textContent = 'Pošalji link'
+        btn.textContent = t.sendLink
       } else {
-        successEl.textContent = 'Poslali smo ti link za resetovanje lozinke. Proveri email.'
+        successEl.textContent = t.resetPasswordSent
         successEl.classList.remove('hidden')
         btn.disabled = true
-        btn.textContent = 'Poslato ✓'
+        btn.textContent = t.sentLink
       }
     }
 
@@ -323,11 +364,11 @@
       document.getElementById('form-register').classList.add('hidden')
       document.getElementById('form-forgot').classList.add('hidden')
       document.getElementById('form-reset').classList.remove('hidden')
-      // Hide the login/register tabs — they're irrelevant during reset
       document.querySelector('.flex.mb-6').classList.add('hidden')
     }
 
     async function handleSetNewPassword() {
+      const t = I18N[loginLang]
       const btn = document.getElementById('reset-btn')
       const errEl = document.getElementById('reset-error')
       const successEl = document.getElementById('reset-success')
@@ -338,16 +379,15 @@
       successEl.classList.add('hidden')
 
       if (password !== confirm) {
-        errEl.textContent = I18N.sr.passwordMismatch
+        errEl.textContent = t.passwordMismatch
         errEl.classList.remove('hidden')
         return
       }
 
       btn.disabled = true
-      btn.textContent = 'Čuvam...'
+      btn.textContent = t.savingPassword
 
       if (!sb) await initAuth()
-      // Supabase v2 picks up the recovery token from the URL hash automatically
       await sb.auth.getSession()
       const { error } = await sb.auth.updateUser({ password })
 
@@ -355,9 +395,9 @@
         errEl.textContent = error.message
         errEl.classList.remove('hidden')
         btn.disabled = false
-        btn.textContent = 'Sačuvaj lozinku'
+        btn.textContent = t.savePassword
       } else {
-        successEl.textContent = 'Lozinka uspešno promenjena! Preusmeravamo te...'
+        successEl.textContent = t.resetSuccessMsg
         successEl.classList.remove('hidden')
         btn.disabled = true
         setTimeout(() => { window.location.href = '/' }, 2000)
@@ -366,6 +406,7 @@
 
     async function handleRegister(e) {
       e.preventDefault()
+      const t = I18N[loginLang]
       const btn = document.getElementById('register-btn')
       const errEl = document.getElementById('reg-error')
       const successEl = document.getElementById('reg-success')
@@ -376,13 +417,13 @@
       successEl.classList.add('hidden')
 
       if (password !== confirm) {
-        errEl.textContent = I18N.sr.passwordMismatch
+        errEl.textContent = t.passwordMismatch
         errEl.classList.remove('hidden')
         return
       }
 
       btn.disabled = true
-      btn.textContent = 'Pravim nalog...'
+      btn.textContent = t.creatingAccount
 
       const { error } = await signUp(
         document.getElementById('reg-email').value,
@@ -393,12 +434,12 @@
         errEl.textContent = error.message
         errEl.classList.remove('hidden')
         btn.disabled = false
-        btn.textContent = 'Napravi nalog'
+        btn.textContent = t.createAccount
       } else {
-        successEl.textContent = I18N.sr.confirmEmailMsg
+        successEl.textContent = t.confirmEmailMsg
         successEl.classList.remove('hidden')
         btn.disabled = false
-        btn.textContent = 'Napravi nalog'
+        btn.textContent = t.createAccount
       }
     }
   </script>
