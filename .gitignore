@@ -5,3 +5,5 @@ node_modules/
 .worktrees/
 .vercel
 .env*.local
+.DS_Store
+.claude/

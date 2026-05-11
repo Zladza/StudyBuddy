@@ -1223,11 +1223,11 @@ function renderFlashcard() {
   const progressBar = document.getElementById('flashcard-progress-bar')
 
   if (flashcardFlipped) {
-    label.textContent = currentLang === 'sr' ? 'ODGOVOR' : 'ANSWER'
+    label.textContent = I18N[currentLang].flashcardAnswer
     label.style.color = '#16a34a'
     content.textContent = card.a
   } else {
-    label.textContent = currentLang === 'sr' ? 'PITANJE' : 'QUESTION'
+    label.textContent = I18N[currentLang].flashcardQuestion
     label.style.color = 'var(--ac)'
     content.textContent = card.q
   }
