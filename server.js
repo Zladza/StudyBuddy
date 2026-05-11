@@ -4,6 +4,14 @@ const path = require('path')
 
 const app = express()
 
+// Webhook MUST come before express.json() — needs raw body for signature verification
+const { makeSubscriptionHandler } = require('./src/subscription-handler')
+const subscription = makeSubscriptionHandler()
+app.post('/api/webhooks/lemonsqueezy',
+  express.raw({ type: 'application/json' }),
+  (req, res) => subscription.handleWebhook(req, res)
+)
+
 app.use(express.json({ limit: '30mb' }))
 app.use(express.static(path.join(__dirname, 'public')))
 
@@ -23,9 +31,11 @@ const { makeHistoryHandler } = require('./src/history-handler')
 const { handleChat: handleClaude } = require('./src/chat-handler')
 const { handleChat: handleOpenAI } = require('./src/openai-chat-handler')
 const { handleChat: handleGemini } = require('./src/gemini-chat-handler')
+const { makePlanGuard } = require('./src/plan-guard')
 
 const requireAuth = makeAuthMiddleware()
 const history = makeHistoryHandler()
+const { requirePro, limitFree, getPlan, getUsageToday } = makePlanGuard()
 
 app.get('/api/history', requireAuth, (req, res) => history.listConversations(req, res))
 app.post('/api/history', requireAuth, (req, res) => history.saveExchange(req, res))
@@ -40,18 +50,30 @@ const { handleQuiz } = require('./src/quiz-handler')
 const { handleGlossary } = require('./src/glossary-handler')
 const { handleSummary } = require('./src/summary-handler')
 const { handleTitle } = require('./src/title-handler')
-app.post('/api/followup', requireAuth, (req, res) => handleFollowup(req, res))
-app.post('/api/flashcards', requireAuth, (req, res) => handleFlashcards(req, res))
-app.post('/api/quiz', requireAuth, (req, res) => handleQuiz(req, res))
-app.post('/api/glossary', requireAuth, (req, res) => handleGlossary(req, res))
-app.post('/api/summary', requireAuth, (req, res) => handleSummary(req, res))
-app.post('/api/title', requireAuth, (req, res) => handleTitle(req, res))
 
-app.post('/api/chat', requireAuth, (req, res) => {
+app.post('/api/followup',   requireAuth, requirePro, (req, res) => handleFollowup(req, res))
+app.post('/api/flashcards', requireAuth, requirePro, (req, res) => handleFlashcards(req, res))
+app.post('/api/quiz',       requireAuth, requirePro, (req, res) => handleQuiz(req, res))
+app.post('/api/glossary',   requireAuth, requirePro, (req, res) => handleGlossary(req, res))
+app.post('/api/summary',    requireAuth, requirePro, (req, res) => handleSummary(req, res))
+app.post('/api/title',      requireAuth, (req, res) => handleTitle(req, res))
+
+app.post('/api/chat', requireAuth, limitFree('messages'), (req, res) => {
   const provider = req.body?.provider || 'claude'
   if (provider === 'openai') return handleOpenAI(req, res)
   if (provider === 'gemini') return handleGemini(req, res)
   return handleClaude(req, res)
+})
+
+app.get('/api/subscription', requireAuth, async (req, res) => {
+  const plan = await getPlan(req.user.id)
+  const usage = await getUsageToday(req.user.id)
+  res.json({
+    plan,
+    messagesToday: usage.messagesToday,
+    uploadsToday: usage.uploadsToday,
+    lsBuyUrl: process.env.LEMONSQUEEZY_BUY_URL || ''
+  })
 })
 
 const { makeShareHandler } = require('./src/share-handler')
@@ -59,25 +81,25 @@ const { makeGroupsHandler } = require('./src/groups-handler')
 const share = makeShareHandler()
 const groups = makeGroupsHandler()
 
-app.post('/api/conversations/:id/share', requireAuth, (req, res) => share.shareConversation(req, res))
-app.delete('/api/conversations/:id/share', requireAuth, (req, res) => share.unshareConversation(req, res))
-app.get('/api/share/:token', requireAuth, (req, res) => share.getShared(req, res))
-app.post('/api/share/:token/fork', requireAuth, (req, res) => share.forkConversation(req, res))
+app.post('/api/conversations/:id/share',  requireAuth, (req, res) => share.shareConversation(req, res))
+app.delete('/api/conversations/:id/share',requireAuth, (req, res) => share.unshareConversation(req, res))
+app.get('/api/share/:token',              requireAuth, (req, res) => share.getShared(req, res))
+app.post('/api/share/:token/fork',        requireAuth, (req, res) => share.forkConversation(req, res))
 
-app.post('/api/groups', requireAuth, (req, res) => groups.createGroup(req, res))
-app.get('/api/groups', requireAuth, (req, res) => groups.listGroups(req, res))
-app.get('/api/groups/:id', requireAuth, (req, res) => groups.getGroup(req, res))
-app.post('/api/groups/:id/invite', requireAuth, (req, res) => groups.inviteMember(req, res))
-app.get('/api/groups/:id/messages', requireAuth, (req, res) => groups.getMessages(req, res))
-app.post('/api/groups/:id/messages', requireAuth, (req, res) => groups.sendMessage(req, res))
-app.delete('/api/groups/:id/leave', requireAuth, (req, res) => groups.leaveGroup(req, res))
-app.delete('/api/groups/:id', requireAuth, (req, res) => groups.deleteGroup(req, res))
+app.post('/api/groups',             requireAuth, requirePro, (req, res) => groups.createGroup(req, res))
+app.get('/api/groups',              requireAuth, requirePro, (req, res) => groups.listGroups(req, res))
+app.get('/api/groups/:id',          requireAuth, requirePro, (req, res) => groups.getGroup(req, res))
+app.post('/api/groups/:id/invite',  requireAuth, requirePro, (req, res) => groups.inviteMember(req, res))
+app.get('/api/groups/:id/messages', requireAuth, requirePro, (req, res) => groups.getMessages(req, res))
+app.post('/api/groups/:id/messages',requireAuth, requirePro, (req, res) => groups.sendMessage(req, res))
+app.delete('/api/groups/:id/leave', requireAuth, requirePro, (req, res) => groups.leaveGroup(req, res))
+app.delete('/api/groups/:id',       requireAuth, requirePro, (req, res) => groups.deleteGroup(req, res))
 
 const { makeNotesHandler } = require('./src/notes-handler')
 const notesHandler = makeNotesHandler()
-app.get('/api/notes', requireAuth, (req, res) => notesHandler.listNotes(req, res))
-app.post('/api/notes', requireAuth, (req, res) => notesHandler.createNote(req, res))
-app.patch('/api/notes/:id', requireAuth, (req, res) => notesHandler.updateNote(req, res))
+app.get('/api/notes',    requireAuth, (req, res) => notesHandler.listNotes(req, res))
+app.post('/api/notes',   requireAuth, (req, res) => notesHandler.createNote(req, res))
+app.patch('/api/notes/:id',  requireAuth, (req, res) => notesHandler.updateNote(req, res))
 app.delete('/api/notes/:id', requireAuth, (req, res) => notesHandler.deleteNote(req, res))
 
 const { makeFilesHandler } = require('./src/files-handler')
@@ -85,14 +107,13 @@ const { makeConvFilesHandler } = require('./src/conversation-files-handler')
 const filesHandler = makeFilesHandler()
 const convFilesHandler = makeConvFilesHandler()
 
-app.get('/api/files', requireAuth, (req, res) => filesHandler.listFiles(req, res))
-app.post('/api/files', requireAuth, (req, res) => filesHandler.uploadFile(req, res))
-app.delete('/api/files/:id', requireAuth, (req, res) => filesHandler.deleteFile(req, res))
-app.get('/api/files/:id/url', requireAuth, (req, res) => filesHandler.getSignedUrl(req, res))
-app.get('/api/conversations/:id/files', requireAuth, (req, res) => convFilesHandler.listConvFiles(req, res))
+app.get('/api/files',    requireAuth, (req, res) => filesHandler.listFiles(req, res))
+app.post('/api/files',   requireAuth, limitFree('uploads'), (req, res) => filesHandler.uploadFile(req, res))
+app.delete('/api/files/:id',    requireAuth, (req, res) => filesHandler.deleteFile(req, res))
+app.get('/api/files/:id/url',   requireAuth, (req, res) => filesHandler.getSignedUrl(req, res))
+app.get('/api/conversations/:id/files',  requireAuth, (req, res) => convFilesHandler.listConvFiles(req, res))
 app.post('/api/conversations/:id/files', requireAuth, (req, res) => convFilesHandler.linkFile(req, res))
 
-// 404 fallback for unmatched routes
 app.use((req, res) => {
   res.status(404).json({ error: 'Not found' })
 })
