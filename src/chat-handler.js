@@ -132,13 +132,14 @@ async function handleChat(req, res, anthropicClient) {
     return res.status(400).json({ error: validationError })
   }
 
-  const { messages, language, files: rawFiles = [] } = req.body
+  const { messages, language, gender, files: rawFiles = [] } = req.body
   const files = Array.isArray(rawFiles) ? rawFiles.filter(f => f && f.base64 && f.mediaType) : []
   const hasPdf = files.some(f => f.mediaType === 'application/pdf')
   const client = anthropicClient || new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
   const contextLimit = files.length > 0 ? 8 : 20
   const recentMessages = messages.slice(-contextLimit)
   const anthropicMessages = buildMessages(recentMessages, files, language)
+  const systemPrompt = buildSystemPrompt(gender)
 
   res.setHeader('Content-Type', 'text/event-stream')
   res.setHeader('Cache-Control', 'no-cache')
@@ -148,7 +149,7 @@ async function handleChat(req, res, anthropicClient) {
     const streamParams = {
       model: 'claude-sonnet-4-6',
       max_tokens: 8192,
-      system: SYSTEM_PROMPT,
+      system: systemPrompt,
       messages: anthropicMessages
     }
     const stream = hasPdf
@@ -173,4 +174,14 @@ async function handleChat(req, res, anthropicClient) {
   }
 }
 
-module.exports = { handleChat, validateRequest, buildMessages, SYSTEM_PROMPT }
+function buildSystemPrompt(gender) {
+  if (gender === 'male') {
+    return SYSTEM_PROMPT + '\n\nKORISNIK: Student je muškog pola. Uvek ga oslovljavaj u muškom rodu (npr. "završio si", "spreman si", "bio si", "dobar").'
+  }
+  if (gender === 'female') {
+    return SYSTEM_PROMPT + '\n\nKORISNIK: Student je ženskog pola. Uvek je oslovljavaj u ženskom rodu (npr. "završila si", "spremna si", "bila si", "dobra").'
+  }
+  return SYSTEM_PROMPT
+}
+
+module.exports = { handleChat, validateRequest, buildMessages, SYSTEM_PROMPT, buildSystemPrompt }

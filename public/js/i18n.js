@@ -217,6 +217,9 @@ const I18N = {
     usageMessages: 'Poruke danas',
     usageUploads: 'Uploadi danas',
     proBadge: 'Pro',
+    genderLabel: 'Pol',
+    genderMale: 'Muško',
+    genderFemale: 'Žensko',
   },
   en: {
     newChat: 'New conversation',
@@ -436,6 +439,9 @@ const I18N = {
     usageMessages: 'Messages today',
     usageUploads: 'Uploads today',
     proBadge: 'Pro',
+    genderLabel: 'Gender',
+    genderMale: 'Male',
+    genderFemale: 'Female',
   }
 }
 

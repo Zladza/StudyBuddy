@@ -219,8 +219,19 @@
         <p class="text-xs text-slate-500 dark:text-gray-400 mt-1" data-i18n="nameModalSubtitle">Koristićemo ga umesto tvoje email adrese.</p>
       </div>
       <input id="name-input" type="text" maxlength="30"
-        class="w-full border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-slate-800 dark:text-gray-100 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#1F4E79] focus:ring-2 focus:ring-[#1F4E79]/10 mb-3"
-        placeholder="Ana" onkeydown="if(event.key==='Enter') saveName()">
+        class="w-full border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-slate-800 dark:text-gray-100 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#1F4E79] focus:ring-2 focus:ring-[#1F4E79]/10 mb-4"
+        placeholder="Ana">
+      <p class="text-xs font-medium text-slate-500 dark:text-gray-400 mb-2" data-i18n="genderLabel">Pol</p>
+      <div class="flex gap-2 mb-4">
+        <label class="flex-1 flex items-center gap-2 border border-slate-200 dark:border-gray-600 rounded-lg px-3 py-2 cursor-pointer hover:bg-slate-50 dark:hover:bg-gray-700 transition">
+          <input type="radio" name="gender" id="gender-male" value="male" class="accent-[var(--ac)]">
+          <span class="text-sm text-slate-700 dark:text-gray-200" data-i18n="genderMale">Muško</span>
+        </label>
+        <label class="flex-1 flex items-center gap-2 border border-slate-200 dark:border-gray-600 rounded-lg px-3 py-2 cursor-pointer hover:bg-slate-50 dark:hover:bg-gray-700 transition">
+          <input type="radio" name="gender" id="gender-female" value="female" class="accent-[var(--ac)]">
+          <span class="text-sm text-slate-700 dark:text-gray-200" data-i18n="genderFemale">Žensko</span>
+        </label>
+      </div>
       <button id="name-save-btn" onclick="saveName()"
         class="accent-btn w-full text-white py-2 rounded-lg text-sm font-medium transition" data-i18n="nameModalBtn">
         Hajde!

@@ -31,6 +31,7 @@ let currentGroupData = null
 let groupRealtimeChannel = null
 let groupsList = []
 let currentUserId = null
+let currentGender = null
 let subscriptionState = { plan: 'free', messagesToday: 0, uploadsToday: 0, lsBuyUrl: '' }
 
 // ── Boot ───────────────────────────────────────────────────────────────────
@@ -42,6 +43,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   currentUserId = session.user.id
   const displayName = session.user.user_metadata?.display_name
   currentDisplayName = displayName || null
+  currentGender = session.user.user_metadata?.gender || null
   const username = displayName || email.split('@')[0]
 
   document.getElementById('user-email') && (document.getElementById('user-email').textContent = email)
@@ -60,9 +62,12 @@ window.addEventListener('DOMContentLoaded', async () => {
   await loadGroups()
   fetchSubscription()
 
-  if (!displayName && email !== 'preview@studybuddy.rs') {
+  if ((!displayName || !currentGender) && email !== 'preview@studybuddy.rs') {
+    const nameInput = document.getElementById('name-input')
+    if (displayName) nameInput.value = displayName
+    if (currentGender) document.getElementById(`gender-${currentGender}`).checked = true
     document.getElementById('name-modal').classList.remove('hidden')
-    document.getElementById('name-input').focus()
+    nameInput.focus()
   }
 
   const convParam = new URLSearchParams(location.search).get('conv')
@@ -87,11 +92,14 @@ async function saveName() {
   const name = input.value.trim()
   if (!name) { input.focus(); return }
 
+  const genderEl = document.querySelector('input[name="gender"]:checked')
+  const gender = genderEl?.value || null
+
   const btn = document.getElementById('name-save-btn')
   btn.disabled = true
 
   if (!sb) await initAuth()
-  const { error } = await sb.auth.updateUser({ data: { display_name: name } })
+  const { error } = await sb.auth.updateUser({ data: { display_name: name, gender } })
 
   if (error) {
     showToast(I18N[currentLang].aiError, 'error')
@@ -100,6 +108,7 @@ async function saveName() {
   }
 
   currentDisplayName = name
+  currentGender = gender
   document.getElementById('name-modal').classList.add('hidden')
   document.getElementById('greeting').textContent = `${I18N[currentLang].greeting}, ${name}! 👋`
   updateProfileAvatar(name)
@@ -687,6 +696,7 @@ async function sendMessage() {
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({
         messages: currentMessages.slice(0, -1).concat({ role: 'user', content: text }),
+        gender: currentGender,
         language: currentLang,
         provider: currentProvider,
         files: filesToSend.map(f => ({ base64: f.base64, mediaType: f.mime_type, name: f.name }))
