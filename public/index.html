@@ -387,7 +387,7 @@
     </div>
 
     <!-- Disclaimer -->
-    <p id="disclaimer" class="text-white/40 text-[10px] leading-relaxed px-1">
+    <p id="disclaimer" class="text-white/40 text-[10px] leading-relaxed px-1" data-i18n="sidebarDisclaimer">
       Ne pišem gotove ispite ni seminarske radove.
     </p>
 
@@ -523,7 +523,7 @@
         <button onclick="sendMessage()" id="send-btn"
           class="accent-btn w-8 h-8 flex items-center justify-center text-white rounded-lg transition shrink-0 font-bold text-sm">↑</button>
       </div>
-      <p class="text-center text-[10px] text-slate-400 dark:text-gray-600 mt-1.5" id="footer-disclaimer">
+      <p class="text-center text-[10px] text-slate-400 dark:text-gray-600 mt-1.5" id="footer-disclaimer" data-i18n="footerDisclaimer">
         StudyBuddy može da greši. Uvek proveri važne informacije.
       </p>
     </div>
@@ -618,6 +618,12 @@
           <button id="notes-new-btn" onclick="createNewNote()" class="text-xs accent-btn text-white px-3 py-1.5 rounded-lg transition" data-i18n="newNote">Nova beleška</button>
           <button onclick="closeNotes()" class="text-slate-400 hover:text-slate-600 dark:text-gray-500 dark:hover:text-gray-300 text-xl leading-none">×</button>
         </div>
+      </div>
+      <!-- Pro gate (free users) -->
+      <div id="notes-pro-gate" class="hidden flex-1 flex flex-col items-center justify-center p-8 text-center gap-4">
+        <div class="text-4xl">📝</div>
+        <p id="notes-pro-desc" class="text-sm text-slate-500 dark:text-gray-400 leading-relaxed max-w-xs"></p>
+        <a id="notes-upgrade-btn" href="#" class="lemonsqueezy-button accent-btn text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition" style="text-decoration:none" data-i18n="upgradeCta">Nadogradi na Pro</a>
       </div>
       <!-- List view -->
       <div id="notes-list-view" class="flex-1 overflow-y-auto p-4">
@@ -729,6 +735,12 @@
       <div class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-slate-100 dark:border-gray-700 flex-shrink-0">
         <h2 class="font-bold text-lg text-slate-800 dark:text-white" data-i18n="libraryTitle">Biblioteka fajlova</h2>
         <button onclick="closeLibrary()" class="text-slate-400 hover:text-slate-700 dark:hover:text-gray-200 text-2xl leading-none">&times;</button>
+      </div>
+      <!-- Pro gate (free users) -->
+      <div id="library-pro-gate" class="hidden flex-1 flex flex-col items-center justify-center p-8 text-center gap-4">
+        <div class="text-4xl">📁</div>
+        <p id="library-pro-desc" class="text-sm text-slate-500 dark:text-gray-400 leading-relaxed max-w-xs"></p>
+        <a id="library-upgrade-btn" href="#" class="lemonsqueezy-button accent-btn text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition" style="text-decoration:none" data-i18n="upgradeCta">Nadogradi na Pro</a>
       </div>
       <div id="library-empty" class="hidden flex-1 flex items-center justify-center text-slate-400 dark:text-gray-500 text-sm py-12">
         <span data-i18n="libraryEmpty">Još nema fajlova u biblioteci.</span>

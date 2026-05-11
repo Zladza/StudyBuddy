@@ -97,20 +97,20 @@ app.delete('/api/groups/:id',       requireAuth, requirePro, (req, res) => group
 
 const { makeNotesHandler } = require('./src/notes-handler')
 const notesHandler = makeNotesHandler()
-app.get('/api/notes',    requireAuth, (req, res) => notesHandler.listNotes(req, res))
-app.post('/api/notes',   requireAuth, (req, res) => notesHandler.createNote(req, res))
-app.patch('/api/notes/:id',  requireAuth, (req, res) => notesHandler.updateNote(req, res))
-app.delete('/api/notes/:id', requireAuth, (req, res) => notesHandler.deleteNote(req, res))
+app.get('/api/notes',    requireAuth, requirePro, (req, res) => notesHandler.listNotes(req, res))
+app.post('/api/notes',   requireAuth, requirePro, (req, res) => notesHandler.createNote(req, res))
+app.patch('/api/notes/:id',  requireAuth, requirePro, (req, res) => notesHandler.updateNote(req, res))
+app.delete('/api/notes/:id', requireAuth, requirePro, (req, res) => notesHandler.deleteNote(req, res))
 
 const { makeFilesHandler } = require('./src/files-handler')
 const { makeConvFilesHandler } = require('./src/conversation-files-handler')
 const filesHandler = makeFilesHandler()
 const convFilesHandler = makeConvFilesHandler()
 
-app.get('/api/files',    requireAuth, (req, res) => filesHandler.listFiles(req, res))
-app.post('/api/files',   requireAuth, limitFree('uploads'), (req, res) => filesHandler.uploadFile(req, res))
-app.delete('/api/files/:id',    requireAuth, (req, res) => filesHandler.deleteFile(req, res))
-app.get('/api/files/:id/url',   requireAuth, (req, res) => filesHandler.getSignedUrl(req, res))
+app.get('/api/files',    requireAuth, requirePro, (req, res) => filesHandler.listFiles(req, res))
+app.post('/api/files',   requireAuth, requirePro, (req, res) => filesHandler.uploadFile(req, res))
+app.delete('/api/files/:id',    requireAuth, requirePro, (req, res) => filesHandler.deleteFile(req, res))
+app.get('/api/files/:id/url',   requireAuth, requirePro, (req, res) => filesHandler.getSignedUrl(req, res))
 app.get('/api/conversations/:id/files',  requireAuth, (req, res) => convFilesHandler.listConvFiles(req, res))
 app.post('/api/conversations/:id/files', requireAuth, (req, res) => convFilesHandler.linkFile(req, res))
 
