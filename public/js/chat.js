@@ -1181,7 +1181,7 @@ async function generateFlashcards() {
       })
     })
     if (!res.ok) {
-      if (res.status === 403) { openPaywallModal('pro'); return }
+      if (res.status === 403) { try { openPaywallModal('pro') } catch(e) {} return }
       showToast(I18N[currentLang].aiError, 'error'); return
     }
     const { cards } = await res.json()
@@ -1616,7 +1616,7 @@ async function generateQuiz() {
       body: JSON.stringify({ messages: currentMessages.map(m => ({ role: m.role, content: m.content })), language: currentLang })
     })
     if (!res.ok) {
-      if (res.status === 403) { openPaywallModal('pro'); return }
+      if (res.status === 403) { try { openPaywallModal('pro') } catch(e) {} return }
       showToast(I18N[currentLang].aiError, 'error'); return
     }
     const { questions } = await res.json()
@@ -1745,7 +1745,7 @@ async function generateGlossary() {
       body: JSON.stringify({ messages: currentMessages.map(m => ({ role: m.role, content: m.content })), language: currentLang })
     })
     if (!res.ok) {
-      if (res.status === 403) { openPaywallModal('pro'); return }
+      if (res.status === 403) { try { openPaywallModal('pro') } catch(e) {} return }
       showToast(I18N[currentLang].aiError, 'error'); return
     }
     const { terms } = await res.json()
@@ -1788,7 +1788,7 @@ async function generateSummary() {
       body: JSON.stringify({ messages: currentMessages.map(m => ({ role: m.role, content: m.content })), language: currentLang })
     })
     if (!res.ok) {
-      if (res.status === 403) { openPaywallModal('pro'); return }
+      if (res.status === 403) { try { openPaywallModal('pro') } catch(e) {} return }
       showToast(I18N[currentLang].aiError, 'error'); return
     }
     const { summary } = await res.json()
@@ -2631,7 +2631,6 @@ function openPaywallModal(type, limitType) {
   }
 
   modal.classList.remove('hidden')
-  if (window.LemonSqueezy) window.LemonSqueezy.Setup()
 }
 
 function closePaywallModal() {
