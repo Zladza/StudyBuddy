@@ -717,6 +717,10 @@ async function sendMessage() {
     addBubbleActions(assistantRow)
     loadFollowupQuestions(assistantRow)
     await saveExchange([userMsg, assistantMsg], token)
+    if (subscriptionState.plan === 'free') {
+      subscriptionState.messagesToday = Math.min((subscriptionState.messagesToday || 0) + 1, 10)
+      updateSubscriptionUI()
+    }
     // Link stored files to conversation (non-blocking)
     if (currentConversationId) {
       const storedFiles = filesSnapshot.filter(f => f.id)
@@ -730,7 +734,10 @@ async function sendMessage() {
     }
 
   } catch (err) {
-    if (err.name !== 'AbortError') {
+    if (err.name === 'AbortError') {
+      assistantRow.remove()
+      currentMessages.pop()
+    } else {
       bubble.innerHTML = ''
       bubble.textContent = navigator.onLine === false ? I18N[currentLang].networkError : I18N[currentLang].aiError
     }
