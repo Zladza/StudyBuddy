@@ -82,13 +82,18 @@ function makeGroupsHandler(supabaseClient) {
       const { data: recent } = await db
         .from('group_messages').select('content, is_ai, display_name').eq('group_id', id)
         .order('created_at', { ascending: false }).limit(12)
-      const ctx = (recent || []).reverse().map(m => `${m.is_ai ? 'StudyBuddy' : (m.display_name || 'Student')}: ${m.content}`).join('\n')
+      const msgs = (recent || []).reverse()
+      const ctx = msgs.map(m => `${m.is_ai ? 'StudyBuddy' : (m.display_name || 'Student')}: ${m.content}`).join('\n')
+      const isSr = /[šžćčđŠŽĆČĐА-Яа-яЉљЊњ]/.test(msgs.map(m => m.content).join(' ') + content)
+      const system = isSr
+        ? 'Ti si StudyBuddy, AI asistent za učenje u grupnom četu sa studentima. Odgovaraj kratko i edukativno, isključivo na srpskom jeziku koristeći latinično pismo.'
+        : 'You are StudyBuddy, a helpful AI study assistant in a group chat with students. Be concise and educational. Respond in English.'
       const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
       try {
         const aiRes = await client.messages.create({
           model: 'claude-haiku-4-5-20251001',
           max_tokens: 600,
-          system: 'You are StudyBuddy, a helpful AI study assistant in a group chat with students. Be concise and educational.',
+          system,
           messages: [{ role: 'user', content: `Group chat:\n${ctx}\n\nA student tagged @AI. Respond helpfully.` }]
         })
         await db.from('group_messages').insert({ group_id: id, user_id: null, content: aiRes.content[0].text, is_ai: true, display_name: 'StudyBuddy' })

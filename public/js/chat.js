@@ -2479,14 +2479,17 @@ async function createGroup() {
 
 async function openGroup(id) {
   if (subscriptionState.plan !== 'pro') { try { openPaywallModal('pro', null, I18N[currentLang].groupsProDesc) } catch(e) {}; return }
+
+  // Abort any in-progress private chat stream
+  if (currentAbortController) { currentAbortController.abort(); currentAbortController = null }
+
   currentGroupId = id
   const token = getAccessToken()
-  const res = await fetch(`/api/groups/${id}`, { headers: { Authorization: `Bearer ${token}` } })
-  if (!res.ok) return
-  const group = await res.json()
-  currentGroupData = group
 
-  document.getElementById('conversation-title').textContent = group.name
+  // Show UI immediately using cached group name
+  const cached = groupsList.find(g => g.id === id)
+  currentGroupData = cached || null
+  document.getElementById('conversation-title').textContent = cached?.name || '...'
   document.getElementById('chat-messages').classList.add('hidden')
   document.getElementById('group-messages').classList.remove('hidden')
   document.getElementById('main-input-bar').classList.add('hidden')
@@ -2497,7 +2500,16 @@ async function openGroup(id) {
   document.getElementById('back-to-chat-btn').classList.remove('hidden')
   document.getElementById('group-header-actions').classList.remove('hidden')
 
-  await loadGroupMessages()
+  // Load messages and full group info in parallel
+  const [, groupRes] = await Promise.all([
+    loadGroupMessages(),
+    fetch(`/api/groups/${id}`, { headers: { Authorization: `Bearer ${token}` } })
+  ])
+  if (groupRes.ok) {
+    currentGroupData = await groupRes.json()
+    document.getElementById('conversation-title').textContent = currentGroupData.name
+  }
+
   subscribeToGroup(id)
 }
 
