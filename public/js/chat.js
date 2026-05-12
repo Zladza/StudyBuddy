@@ -2339,7 +2339,11 @@ async function createNewNote() {
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
     body: JSON.stringify({ title: '', content: '' })
   })
-  if (!res.ok) return
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    showToast(err.error || 'Error creating note', 'error')
+    return
+  }
   const note = await res.json()
   notesCache.unshift(note)
   notesOpenEdit(note.id)
