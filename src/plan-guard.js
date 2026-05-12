@@ -1,6 +1,7 @@
 const { createClient } = require('@supabase/supabase-js')
 
 const LIMITS = { messages: 10, uploads: 1 }
+const PLAN_CACHE_TTL = 60 * 1000
 
 function isVip(email) {
   if (!email || !process.env.VIP_EMAILS) return false
@@ -13,15 +14,20 @@ function makePlanGuard(supabaseClient) {
     process.env.SUPABASE_URL,
     process.env.SUPABASE_SERVICE_KEY
   )
+  const planCache = new Map() // userId → { plan, expiresAt }
 
   async function getPlan(userId, email) {
     if (isVip(email)) return 'pro'
+    const cached = planCache.get(userId)
+    if (cached && cached.expiresAt > Date.now()) return cached.plan
     const { data } = await db
       .from('profiles')
       .select('plan')
       .eq('id', userId)
       .single()
-    return data?.plan || 'free'
+    const plan = data?.plan || 'free'
+    planCache.set(userId, { plan, expiresAt: Date.now() + PLAN_CACHE_TTL })
+    return plan
   }
 
   async function getUsageToday(userId) {
