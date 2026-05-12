@@ -76,6 +76,8 @@ function makeGroupsHandler(supabaseClient) {
       .from('group_messages').insert({ group_id: id, user_id: req.user.id, content: content.trim(), display_name: displayName || null })
       .select().single()
 
+    res.json({ success: true, message: msg })
+
     if (/\@ai\b/i.test(content)) {
       const { data: recent } = await db
         .from('group_messages').select('content, is_ai, display_name').eq('group_id', id)
@@ -92,8 +94,6 @@ function makeGroupsHandler(supabaseClient) {
         await db.from('group_messages').insert({ group_id: id, user_id: null, content: aiRes.content[0].text, is_ai: true, display_name: 'StudyBuddy' })
       } catch {}
     }
-
-    res.json({ success: true, message: msg })
   }
 
   async function leaveGroup(req, res) {

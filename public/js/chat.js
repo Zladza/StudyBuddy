@@ -2552,18 +2552,19 @@ async function sendGroupMessage() {
   const content = input.value.trim()
   if (!content || !currentGroupId) return
   input.value = ''
+
+  // Render optimistically so message appears instantly
+  renderGroupMessage({ content, user_id: currentUserId, display_name: currentDisplayName, is_ai: false })
+  const container = document.getElementById('group-messages')
+  container.scrollTop = container.scrollHeight
+
   const token = getAccessToken()
   const res = await fetch(`/api/groups/${currentGroupId}/messages`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({ content, displayName: currentDisplayName || null })
   })
-  if (!res.ok) { showToast(I18N[currentLang].aiError, 'error'); return }
-  const { message } = await res.json()
-  if (currentUserId) message.user_id = currentUserId
-  renderGroupMessage(message)
-  const container = document.getElementById('group-messages')
-  container.scrollTop = container.scrollHeight
+  if (!res.ok) showToast(I18N[currentLang].aiError, 'error')
 }
 
 function handleGroupInputKeydown(e) {
