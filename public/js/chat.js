@@ -64,6 +64,9 @@ async function finishBoot() {
   }
 }
 
+// Warm up the server immediately on page load to avoid cold-start delay on first message
+fetch('/api/health').catch(() => {})
+
 window.addEventListener('DOMContentLoaded', async () => {
   const session = await requireSession()
   if (!session) return
