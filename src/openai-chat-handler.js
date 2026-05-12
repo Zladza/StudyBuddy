@@ -1,8 +1,8 @@
 const OpenAI = require('openai')
-const pdfParse = require('pdf-parse')
 const { buildSystemPrompt, validateRequest } = require('./chat-handler')
 
 async function extractPdfText(base64) {
+  const pdfParse = require('pdf-parse')
   const buf = Buffer.from(base64, 'base64')
   const { text } = await pdfParse(buf)
   return text.trim()
