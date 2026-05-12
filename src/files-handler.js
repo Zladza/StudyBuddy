@@ -24,7 +24,7 @@ function makeFilesHandler(supabaseClient) {
 
     if (insertError) {
       console.error('uploadFile insert error:', insertError)
-      return res.status(500).json({ error: 'Greška pri čuvanju fajla.' })
+      return res.status(500).json({ error: insertError.message || 'Greška pri čuvanju fajla.' })
     }
 
     const fileId = fileRow.id
@@ -40,7 +40,7 @@ function makeFilesHandler(supabaseClient) {
       console.error('uploadFile storage error:', storageError)
       const { error: rollbackError } = await db.from('files').delete().eq('id', fileId)
       if (rollbackError) console.error('uploadFile rollback error:', rollbackError)
-      return res.status(500).json({ error: 'Greška pri uploadovanju fajla.' })
+      return res.status(500).json({ error: storageError.message || 'Greška pri uploadovanju fajla.' })
     }
 
     const { error: updateError } = await db.from('files').update({ storage_path: storagePath }).eq('id', fileId)
