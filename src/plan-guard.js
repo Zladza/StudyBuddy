@@ -4,7 +4,10 @@ const LIMITS = { messages: 10, uploads: 1 }
 
 function isVip(email) {
   if (!email || !process.env.VIP_EMAILS) return false
-  return process.env.VIP_EMAILS.split(',').map(e => e.trim().toLowerCase()).includes(email.toLowerCase())
+  const list = process.env.VIP_EMAILS.split(',').map(e => e.trim().toLowerCase())
+  const result = list.includes(email.toLowerCase())
+  console.log('[VIP check]', email, '→', result, '| list:', list)
+  return result
 }
 
 function makePlanGuard(supabaseClient) {
