@@ -2,13 +2,19 @@ const { createClient } = require('@supabase/supabase-js')
 
 const LIMITS = { messages: 10, uploads: 1 }
 
+function isVip(email) {
+  if (!email || !process.env.VIP_EMAILS) return false
+  return process.env.VIP_EMAILS.split(',').map(e => e.trim().toLowerCase()).includes(email.toLowerCase())
+}
+
 function makePlanGuard(supabaseClient) {
   const db = supabaseClient || createClient(
     process.env.SUPABASE_URL,
     process.env.SUPABASE_SERVICE_KEY
   )
 
-  async function getPlan(userId) {
+  async function getPlan(userId, email) {
+    if (isVip(email)) return 'pro'
     const { data } = await db
       .from('profiles')
       .select('plan')
@@ -32,14 +38,14 @@ function makePlanGuard(supabaseClient) {
   }
 
   async function requirePro(req, res, next) {
-    const plan = await getPlan(req.user.id)
+    const plan = await getPlan(req.user.id, req.user.email)
     if (plan !== 'pro') return res.status(403).json({ error: 'pro_required' })
     next()
   }
 
   function limitFree(type) {
     return async (req, res, next) => {
-      const plan = await getPlan(req.user.id)
+      const plan = await getPlan(req.user.id, req.user.email)
       if (plan === 'pro') return next()
       const { data, error } = await db.rpc('increment_and_check_usage', {
         p_user_id: req.user.id,
@@ -56,4 +62,4 @@ function makePlanGuard(supabaseClient) {
   return { requirePro, limitFree, getPlan, getUsageToday }
 }
 
-module.exports = { makePlanGuard }
+module.exports = { makePlanGuard, isVip }

@@ -1,4 +1,4 @@
-const { makePlanGuard } = require('../src/plan-guard')
+const { makePlanGuard, isVip } = require('../src/plan-guard')
 
 function mockRes() {
   const res = {}
@@ -29,9 +29,35 @@ function makeFreeDb(rpcResult = { allowed: true, count: 1 }) {
   }
 }
 
+test('isVip returns true for email in VIP_EMAILS', () => {
+  process.env.VIP_EMAILS = 'admin@test.com, vip@test.com'
+  expect(isVip('admin@test.com')).toBe(true)
+  expect(isVip('VIP@TEST.COM')).toBe(true)
+  expect(isVip('other@test.com')).toBe(false)
+  delete process.env.VIP_EMAILS
+})
+
+test('isVip returns false when VIP_EMAILS not set', () => {
+  delete process.env.VIP_EMAILS
+  expect(isVip('anyone@test.com')).toBe(false)
+})
+
+test('requirePro allows VIP user without hitting DB', async () => {
+  process.env.VIP_EMAILS = 'vip@test.com'
+  const db = makeFreeDb() // DB says free, but VIP overrides
+  const { requirePro } = makePlanGuard(db)
+  const req = { user: { id: 'user-vip', email: 'vip@test.com' } }
+  const res = mockRes()
+  const next = jest.fn()
+  await requirePro(req, res, next)
+  expect(next).toHaveBeenCalled()
+  expect(db.from).not.toHaveBeenCalled()
+  delete process.env.VIP_EMAILS
+})
+
 test('requirePro allows pro users', async () => {
   const { requirePro } = makePlanGuard(makeProDb())
-  const req = { user: { id: 'user-123' } }
+  const req = { user: { id: 'user-123', email: 'user@test.com' } }
   const res = mockRes()
   const next = jest.fn()
   await requirePro(req, res, next)
@@ -41,7 +67,7 @@ test('requirePro allows pro users', async () => {
 
 test('requirePro blocks free users with 403', async () => {
   const { requirePro } = makePlanGuard(makeFreeDb())
-  const req = { user: { id: 'user-123' } }
+  const req = { user: { id: 'user-123', email: 'user@test.com' } }
   const res = mockRes()
   const next = jest.fn()
   await requirePro(req, res, next)
@@ -53,7 +79,7 @@ test('requirePro blocks free users with 403', async () => {
 test('limitFree allows pro users without checking usage', async () => {
   const db = makeProDb()
   const { limitFree } = makePlanGuard(db)
-  const req = { user: { id: 'user-123' } }
+  const req = { user: { id: 'user-123', email: 'user@test.com' } }
   const res = mockRes()
   const next = jest.fn()
   await limitFree('messages')(req, res, next)
@@ -63,7 +89,7 @@ test('limitFree allows pro users without checking usage', async () => {
 
 test('limitFree allows free user under limit', async () => {
   const { limitFree } = makePlanGuard(makeFreeDb({ allowed: true, count: 3 }))
-  const req = { user: { id: 'user-123' } }
+  const req = { user: { id: 'user-123', email: 'user@test.com' } }
   const res = mockRes()
   const next = jest.fn()
   await limitFree('messages')(req, res, next)
@@ -72,7 +98,7 @@ test('limitFree allows free user under limit', async () => {
 
 test('limitFree blocks free user at limit with 403', async () => {
   const { limitFree } = makePlanGuard(makeFreeDb({ allowed: false, count: 10 }))
-  const req = { user: { id: 'user-123' } }
+  const req = { user: { id: 'user-123', email: 'user@test.com' } }
   const res = mockRes()
   const next = jest.fn()
   await limitFree('messages')(req, res, next)
