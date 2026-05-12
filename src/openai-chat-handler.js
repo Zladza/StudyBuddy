@@ -1,39 +1,65 @@
 const OpenAI = require('openai')
+const pdfParse = require('pdf-parse')
 const { buildSystemPrompt, validateRequest } = require('./chat-handler')
 
-function buildOpenAIMessages(messages, files = [], language = 'sr') {
+async function extractPdfText(base64) {
+  const buf = Buffer.from(base64, 'base64')
+  const { text } = await pdfParse(buf)
+  return text.trim()
+}
+
+async function buildOpenAIMessages(messages, files = [], language = 'sr') {
   const emptyPlaceholder = language === 'en' ? '[Attached file]' : '[Priložen fajl]'
   const fallbackPrompt = language === 'en' ? 'Analyze the attached material.' : 'Analiziraj priloženi materijal.'
-  const fileHint = '[MANDATORY: An image has been uploaded. You MUST transcribe ALL visible text exactly before answering — including handwritten text, numbers, formulas, and labels. Flag any unclear parts explicitly. Never guess at unclear content.]'
+  const imageHint = '[MANDATORY: An image has been uploaded. You MUST transcribe ALL visible text exactly before answering — including handwritten text, numbers, formulas, and labels. Flag any unclear parts explicitly.]'
 
-  return messages.map((m, i) => {
+  const pdfs = files.filter(f => f.mediaType === 'application/pdf')
+  const images = files.filter(f => f.mediaType !== 'application/pdf')
+
+  let pdfText = ''
+  for (const pdf of pdfs) {
+    const text = await extractPdfText(pdf.base64)
+    pdfText += `\n\n[PDF CONTENT START]\n${text}\n[PDF CONTENT END]`
+  }
+
+  const result = []
+  for (let i = 0; i < messages.length; i++) {
+    const m = messages[i]
     const content = m.content || emptyPlaceholder
     const isLastUser = m.role === 'user' && !messages.slice(i + 1).some(x => x.role === 'user')
 
-    if (!isLastUser || !files.length) return { role: m.role, content }
+    if (!isLastUser || !files.length) {
+      result.push({ role: m.role, content })
+      continue
+    }
 
     const userText = (m.content || '').trim()
-    const fullText = userText.length < 10
-      ? `${fileHint}\n${userText || fallbackPrompt}`
-      : `${fileHint}\n${userText}`
+    const hasImages = images.length > 0
+    const hasPdfs = pdfs.length > 0
+
+    let fullText = userText || fallbackPrompt
+    if (hasPdfs) fullText = `${fullText}${pdfText}`
+    if (hasImages) fullText = `${imageHint}\n${fullText}`
 
     const parts = [{ type: 'text', text: fullText }]
-    for (const f of files) {
+    for (const f of images) {
       parts.push({ type: 'image_url', image_url: { url: `data:${f.mediaType};base64,${f.base64}` } })
     }
-    return { role: m.role, content: parts }
-  })
+
+    result.push({ role: m.role, content: parts })
+  }
+  return result
 }
 
 async function handleChat(req, res, openaiClient) {
   const validationError = validateRequest(req.body)
   if (validationError) return res.status(400).json({ error: validationError })
-  const { messages, language, gender, faculty, studyYear, files: rawFiles = [] } = req.body
+  const { messages, language, gender, faculty, studyYear, files: rawFiles = [], claudeModel } = req.body
   const files = Array.isArray(rawFiles) ? rawFiles.filter(f => f && f.base64 && f.mediaType) : []
   const client = openaiClient || new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
   const contextLimit = files.length > 0 ? 8 : 20
   const recentMessages = messages.slice(-contextLimit)
-  const openaiMessages = buildOpenAIMessages(recentMessages, files, language)
+  const openaiMessages = await buildOpenAIMessages(recentMessages, files, language)
 
   res.setHeader('Content-Type', 'text/event-stream')
   res.setHeader('Cache-Control', 'no-cache')

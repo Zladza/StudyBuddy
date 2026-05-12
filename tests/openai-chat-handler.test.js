@@ -1,34 +1,34 @@
 const { buildOpenAIMessages } = require('../src/openai-chat-handler')
 
-test('buildOpenAIMessages returns plain messages when no files', () => {
+test('buildOpenAIMessages returns plain messages when no files', async () => {
   const input = [
     { role: 'user', content: 'Objasni mi Thevenina' },
     { role: 'assistant', content: 'Theveninova teorema...' }
   ]
-  expect(buildOpenAIMessages(input, [])).toEqual([
+  expect(await buildOpenAIMessages(input, [])).toEqual([
     { role: 'user', content: 'Objasni mi Thevenina' },
     { role: 'assistant', content: 'Theveninova teorema...' }
   ])
 })
 
-test('buildOpenAIMessages defaults to empty files when omitted', () => {
+test('buildOpenAIMessages defaults to empty files when omitted', async () => {
   const input = [{ role: 'user', content: 'test' }]
-  expect(buildOpenAIMessages(input)).toEqual([{ role: 'user', content: 'test' }])
+  expect(await buildOpenAIMessages(input)).toEqual([{ role: 'user', content: 'test' }])
 })
 
-test('buildOpenAIMessages fills empty content with sr placeholder', () => {
+test('buildOpenAIMessages fills empty content with sr placeholder', async () => {
   const input = [{ role: 'user', content: '' }]
-  expect(buildOpenAIMessages(input, [], 'sr')[0].content).toBe('[Priložen fajl]')
+  expect((await buildOpenAIMessages(input, [], 'sr'))[0].content).toBe('[Priložen fajl]')
 })
 
-test('buildOpenAIMessages fills empty content with en placeholder', () => {
+test('buildOpenAIMessages fills empty content with en placeholder', async () => {
   const input = [{ role: 'user', content: '' }]
-  expect(buildOpenAIMessages(input, [], 'en')[0].content).toBe('[Attached file]')
+  expect((await buildOpenAIMessages(input, [], 'en'))[0].content).toBe('[Attached file]')
 })
 
-test('buildOpenAIMessages wraps last user message with image_url block', () => {
+test('buildOpenAIMessages wraps last user message with image_url block', async () => {
   const input = [{ role: 'user', content: 'Šta je ovo?' }]
-  const result = buildOpenAIMessages(input, [{ base64: 'imgdata==', mediaType: 'image/jpeg', name: 'foto.jpg' }])
+  const result = await buildOpenAIMessages(input, [{ base64: 'imgdata==', mediaType: 'image/jpeg', name: 'foto.jpg' }])
   expect(result[0].content[0]).toEqual({ type: 'text', text: expect.stringContaining('Šta je ovo?') })
   expect(result[0].content[1]).toEqual({
     type: 'image_url',
@@ -36,25 +36,25 @@ test('buildOpenAIMessages wraps last user message with image_url block', () => {
   })
 })
 
-test('buildOpenAIMessages uses sr fallback when content empty and files present', () => {
+test('buildOpenAIMessages uses sr fallback when content empty and files present', async () => {
   const input = [{ role: 'user', content: '' }]
-  const result = buildOpenAIMessages(input, [{ base64: 'img==', mediaType: 'image/png', name: 'f.png' }], 'sr')
+  const result = await buildOpenAIMessages(input, [{ base64: 'img==', mediaType: 'image/png', name: 'f.png' }], 'sr')
   expect(result[0].content[0].text).toContain('Analiziraj priloženi materijal.')
 })
 
-test('buildOpenAIMessages uses en fallback when content empty and files present', () => {
+test('buildOpenAIMessages uses en fallback when content empty and files present', async () => {
   const input = [{ role: 'user', content: '' }]
-  const result = buildOpenAIMessages(input, [{ base64: 'img==', mediaType: 'image/png', name: 'f.png' }], 'en')
+  const result = await buildOpenAIMessages(input, [{ base64: 'img==', mediaType: 'image/png', name: 'f.png' }], 'en')
   expect(result[0].content[0].text).toContain('Analyze the attached material.')
 })
 
-test('buildOpenAIMessages only wraps last user message', () => {
+test('buildOpenAIMessages only wraps last user message', async () => {
   const input = [
     { role: 'user', content: 'First message' },
     { role: 'assistant', content: 'Reply' },
     { role: 'user', content: 'Second message' }
   ]
-  const result = buildOpenAIMessages(input, [{ base64: 'img==', mediaType: 'image/jpeg', name: 'f.jpg' }])
+  const result = await buildOpenAIMessages(input, [{ base64: 'img==', mediaType: 'image/jpeg', name: 'f.jpg' }])
   expect(typeof result[0].content).toBe('string')
   expect(Array.isArray(result[2].content)).toBe(true)
 })

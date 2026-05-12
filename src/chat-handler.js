@@ -132,7 +132,7 @@ async function handleChat(req, res, anthropicClient) {
     return res.status(400).json({ error: validationError })
   }
 
-  const { messages, language, gender, faculty, studyYear, files: rawFiles = [] } = req.body
+  const { messages, language, gender, faculty, studyYear, files: rawFiles = [], claudeModel } = req.body
   const files = Array.isArray(rawFiles) ? rawFiles.filter(f => f && f.base64 && f.mediaType) : []
   const hasPdf = files.some(f => f.mediaType === 'application/pdf')
   const client = anthropicClient || new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
@@ -147,7 +147,7 @@ async function handleChat(req, res, anthropicClient) {
 
   try {
     const streamParams = {
-      model: 'claude-sonnet-4-6',
+      model: claudeModel === 'opus' ? 'claude-opus-4-7' : 'claude-sonnet-4-6',
       max_tokens: 8192,
       system: systemPrompt,
       messages: anthropicMessages

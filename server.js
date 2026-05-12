@@ -59,7 +59,7 @@ app.post('/api/summary',    requireAuth, requirePro, (req, res) => handleSummary
 app.post('/api/title',      requireAuth, (req, res) => handleTitle(req, res))
 
 app.post('/api/chat', requireAuth, limitFree('messages'), (req, res) => {
-  const provider = req.body?.provider || 'claude'
+  const provider = req.body?.provider || 'openai'
   if (provider === 'openai') return handleOpenAI(req, res)
   if (provider === 'gemini') return handleGemini(req, res)
   return handleClaude(req, res)
