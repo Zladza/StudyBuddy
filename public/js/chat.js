@@ -2633,8 +2633,14 @@ async function inviteMember() {
 
 async function openGroupInfo() {
   if (!currentGroupId) return
-  const group = currentGroupData
-  if (!group) return
+  const token = getAccessToken()
+
+  // Fetch fresh group data (includes members + lang)
+  const res = await fetch(`/api/groups/${currentGroupId}`, { headers: { Authorization: `Bearer ${token}` } })
+  if (!res.ok) return
+  const group = await res.json()
+  currentGroupData = group
+
   document.getElementById('group-info-title').textContent = group.name
   const membersList = document.getElementById('group-info-members')
   membersList.innerHTML = (group.members || []).map(m => `
@@ -2646,16 +2652,12 @@ async function openGroupInfo() {
     </div>
   `).join('')
 
-  // Show lang selector only to group creator
-  const langSection = document.getElementById('group-lang-section')
-  const isCreator = group.created_by === currentUserId
-  langSection.classList.toggle('hidden', !isCreator)
-  if (isCreator) {
-    const t = I18N[currentLang]
-    document.getElementById('group-lang-sr').textContent = t.groupLangSr
-    document.getElementById('group-lang-en').textContent = t.groupLangEn
-    updateGroupLangButtons(group.lang || 'sr')
-  }
+  // Language selector — visible to all members
+  const t = I18N[currentLang]
+  document.getElementById('group-lang-section').classList.remove('hidden')
+  document.getElementById('group-lang-sr').textContent = t.groupLangSr
+  document.getElementById('group-lang-en').textContent = t.groupLangEn
+  updateGroupLangButtons(group.lang || 'sr')
 
   document.getElementById('group-info-modal').classList.remove('hidden')
 }
