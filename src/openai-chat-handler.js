@@ -41,7 +41,7 @@ async function handleChat(req, res, openaiClient) {
 
   try {
     const stream = await client.chat.completions.stream({
-      model: 'gpt-5.4-mini',
+      model: 'gpt-4.1-mini',
       max_tokens: 8192,
       messages: [{ role: 'system', content: buildSystemPrompt(gender, faculty, studyYear, language) }, ...openaiMessages]
     })
