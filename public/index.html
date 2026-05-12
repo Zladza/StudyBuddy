@@ -665,7 +665,8 @@
   <!-- New subject modal -->
   <div id="new-subject-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-slate-200 dark:border-gray-700 w-full max-w-xs p-6">
-      <h2 class="text-sm font-semibold text-slate-800 dark:text-gray-100 mb-4" data-i18n="createSubject">Kreiraj predmet</h2>
+      <h2 class="text-sm font-semibold text-slate-800 dark:text-gray-100 mb-1" data-i18n="createSubject">Kreiraj predmet</h2>
+      <p class="text-xs text-slate-400 dark:text-gray-500 mb-4" data-i18n="subjectsProDesc"></p>
       <input id="new-subject-input" type="text" maxlength="40"
         class="w-full border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-slate-800 dark:text-gray-100 rounded-lg px-3 py-2 text-sm outline-none focus:border-[var(--ac)] mb-3"
         placeholder="npr. Matematika" onkeydown="if(event.key==='Enter') saveNewSubject()">
@@ -704,7 +705,8 @@
   <!-- Create group modal -->
   <div id="create-group-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target===this)closeCreateGroupModal()">
     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-slate-200 dark:border-gray-700 w-full max-w-xs p-6">
-      <h2 class="text-base font-semibold text-slate-800 dark:text-gray-100 mb-4" data-i18n="createGroupTitle">Nova studijska grupa</h2>
+      <h2 class="text-base font-semibold text-slate-800 dark:text-gray-100 mb-1" data-i18n="createGroupTitle">Nova studijska grupa</h2>
+      <p class="text-xs text-slate-400 dark:text-gray-500 mb-4" data-i18n="groupsProDesc"></p>
       <label class="text-xs font-medium text-slate-500 dark:text-gray-400 mb-1 block" data-i18n="groupNameLabel">Naziv grupe</label>
       <input id="group-name-input" type="text" maxlength="60"
         class="w-full border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-slate-800 dark:text-gray-100 rounded-lg px-3 py-2 text-sm outline-none focus:border-[var(--ac)] mb-4"
