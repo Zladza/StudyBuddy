@@ -17,7 +17,7 @@ function makeGroupsHandler(supabaseClient) {
     if (!name?.trim()) return res.status(400).json({ error: 'Name required.' })
     const { data: group, error } = await db
       .from('study_groups').insert({ name: name.trim(), created_by: req.user.id })
-      .select('id, name, created_by, created_at').single()
+      .select('id, name, created_by, created_at, lang').single()
     if (error) return res.status(500).json({ error: 'Failed.' })
     await db.from('group_members').insert({ group_id: group.id, user_id: req.user.id })
     res.json(group)
@@ -27,14 +27,14 @@ function makeGroupsHandler(supabaseClient) {
     const { data: rows } = await db.from('group_members').select('group_id').eq('user_id', req.user.id)
     if (!rows || rows.length === 0) return res.json([])
     const ids = rows.map(r => r.group_id)
-    const { data: groups } = await db.from('study_groups').select('id, name, created_by, created_at').in('id', ids).order('created_at', { ascending: false })
+    const { data: groups } = await db.from('study_groups').select('id, name, created_by, created_at, lang').in('id', ids).order('created_at', { ascending: false })
     res.json(groups || [])
   }
 
   async function getGroup(req, res) {
     const { id } = req.params
     if (!(await isMember(id, req.user.id))) return res.status(403).json({ error: 'Not a member.' })
-    const { data: group } = await db.from('study_groups').select('id, name, created_by, created_at').eq('id', id).single()
+    const { data: group } = await db.from('study_groups').select('id, name, created_by, created_at, lang').eq('id', id).single()
     if (!group) return res.status(404).json({ error: 'Not found.' })
     const { data: memberRows } = await db.from('group_members').select('user_id, joined_at').eq('group_id', id)
     const members = await Promise.all((memberRows || []).map(async m => {
@@ -42,6 +42,17 @@ function makeGroupsHandler(supabaseClient) {
       return { user_id: m.user_id, email: u?.email, display_name: u?.user_metadata?.display_name, joined_at: m.joined_at }
     }))
     res.json({ ...group, members })
+  }
+
+  async function updateGroup(req, res) {
+    const { id } = req.params
+    const { lang } = req.body
+    const { data: group } = await db.from('study_groups').select('created_by').eq('id', id).single()
+    if (!group || group.created_by !== req.user.id) return res.status(403).json({ error: 'Not authorized.' })
+    if (lang && !['sr', 'en'].includes(lang)) return res.status(400).json({ error: 'Invalid lang.' })
+    const { error } = await db.from('study_groups').update({ lang }).eq('id', id)
+    if (error) return res.status(500).json({ error: 'Failed.' })
+    res.json({ success: true })
   }
 
   async function inviteMember(req, res) {
@@ -79,13 +90,15 @@ function makeGroupsHandler(supabaseClient) {
     res.json({ success: true, message: msg })
 
     if (/\@ai\b/i.test(content)) {
-      const { data: recent } = await db
-        .from('group_messages').select('content, is_ai, display_name').eq('group_id', id)
-        .order('created_at', { ascending: false }).limit(12)
+      const [{ data: groupData }, { data: recent }] = await Promise.all([
+        db.from('study_groups').select('lang').eq('id', id).single(),
+        db.from('group_messages').select('content, is_ai, display_name').eq('group_id', id)
+          .order('created_at', { ascending: false }).limit(12)
+      ])
+      const lang = groupData?.lang || 'sr'
       const msgs = (recent || []).reverse()
       const ctx = msgs.map(m => `${m.is_ai ? 'StudyBuddy' : (m.display_name || 'Student')}: ${m.content}`).join('\n')
-      const isSr = /[šžćčđŠŽĆČĐА-Яа-яЉљЊњ]/.test(msgs.map(m => m.content).join(' ') + content)
-      const system = isSr
+      const system = lang === 'sr'
         ? 'Ti si StudyBuddy, AI asistent za učenje u grupnom četu sa studentima. Odgovaraj kratko i edukativno, isključivo na srpskom jeziku koristeći latinično pismo.'
         : 'You are StudyBuddy, a helpful AI study assistant in a group chat with students. Be concise and educational. Respond in English.'
       const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
@@ -115,7 +128,7 @@ function makeGroupsHandler(supabaseClient) {
     res.json({ success: true })
   }
 
-  return { createGroup, listGroups, getGroup, inviteMember, getMessages, sendMessage, leaveGroup, deleteGroup }
+  return { createGroup, listGroups, getGroup, updateGroup, inviteMember, getMessages, sendMessage, leaveGroup, deleteGroup }
 }
 
 module.exports = { makeGroupsHandler }

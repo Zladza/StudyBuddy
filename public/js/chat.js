@@ -2645,7 +2645,41 @@ async function openGroupInfo() {
       <span class="text-sm text-slate-700 dark:text-gray-200">${m.display_name || m.email}</span>
     </div>
   `).join('')
+
+  // Show lang selector only to group creator
+  const langSection = document.getElementById('group-lang-section')
+  const isCreator = group.created_by === currentUserId
+  langSection.classList.toggle('hidden', !isCreator)
+  if (isCreator) {
+    const t = I18N[currentLang]
+    document.getElementById('group-lang-sr').textContent = t.groupLangSr
+    document.getElementById('group-lang-en').textContent = t.groupLangEn
+    updateGroupLangButtons(group.lang || 'sr')
+  }
+
   document.getElementById('group-info-modal').classList.remove('hidden')
+}
+
+function updateGroupLangButtons(activeLang) {
+  const srBtn = document.getElementById('group-lang-sr')
+  const enBtn = document.getElementById('group-lang-en')
+  const active = 'accent-btn text-white border-transparent'
+  const inactive = 'bg-white dark:bg-gray-700 text-slate-600 dark:text-gray-300 border-slate-200 dark:border-gray-600 hover:bg-slate-50 dark:hover:bg-gray-600'
+  srBtn.className = `flex-1 py-1.5 rounded-lg text-xs font-medium border transition ${activeLang === 'sr' ? active : inactive}`
+  enBtn.className = `flex-1 py-1.5 rounded-lg text-xs font-medium border transition ${activeLang === 'en' ? active : inactive}`
+}
+
+async function setGroupLang(lang) {
+  if (!currentGroupId) return
+  const token = getAccessToken()
+  const res = await fetch(`/api/groups/${currentGroupId}`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ lang })
+  })
+  if (!res.ok) return
+  if (currentGroupData) currentGroupData.lang = lang
+  updateGroupLangButtons(lang)
 }
 
 function closeGroupInfoModal() {

@@ -98,6 +98,7 @@ app.post('/api/share/:token/fork',        requireAuth, (req, res) => share.forkC
 app.post('/api/groups',             requireAuth, requirePro, (req, res) => groups.createGroup(req, res))
 app.get('/api/groups',              requireAuth, requirePro, (req, res) => groups.listGroups(req, res))
 app.get('/api/groups/:id',          requireAuth, requirePro, (req, res) => groups.getGroup(req, res))
+app.patch('/api/groups/:id',        requireAuth, requirePro, (req, res) => groups.updateGroup(req, res))
 app.post('/api/groups/:id/invite',  requireAuth, requirePro, (req, res) => groups.inviteMember(req, res))
 app.get('/api/groups/:id/messages', requireAuth, requirePro, (req, res) => groups.getMessages(req, res))
 app.post('/api/groups/:id/messages',requireAuth, requirePro, (req, res) => groups.sendMessage(req, res))

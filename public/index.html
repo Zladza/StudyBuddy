@@ -744,6 +744,14 @@
       </div>
       <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-gray-500 mb-2" data-i18n="groupMembers">Članovi</p>
       <div id="group-info-members" class="flex flex-col gap-1.5 mb-4 max-h-48 overflow-y-auto"></div>
+      <!-- Language selector (only visible to group creator) -->
+      <div id="group-lang-section" class="hidden mb-4">
+        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-gray-500 mb-2" data-i18n="groupLangLabel">Jezik AI odgovora</p>
+        <div class="flex gap-2">
+          <button id="group-lang-sr" onclick="setGroupLang('sr')" class="flex-1 py-1.5 rounded-lg text-xs font-medium border transition"></button>
+          <button id="group-lang-en" onclick="setGroupLang('en')" class="flex-1 py-1.5 rounded-lg text-xs font-medium border transition"></button>
+        </div>
+      </div>
       <button onclick="openInviteModal();closeGroupInfoModal()" class="w-full accent-btn text-white py-2 rounded-lg text-sm font-medium transition mb-2" data-i18n="inviteTitle">Pozovi člana</button>
       <button onclick="leaveGroup()" class="w-full text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 py-2 rounded-lg transition" data-i18n="leaveGroup">Napusti grupu</button>
     </div>
