@@ -39,33 +39,13 @@ let currentEmail = null
 let subscriptionState = { plan: 'free', messagesToday: 0, uploadsToday: 0, lsBuyUrl: '' }
 
 // ── Boot ───────────────────────────────────────────────────────────────────
-window.addEventListener('DOMContentLoaded', async () => {
-  const session = await requireSession()
-  if (!session) return
+let _bootDisplayName = null
+let _bootEmail = null
 
-  const email = session.user.email
-  currentEmail = email
-  currentUserId = session.user.id
-  const displayName = session.user.user_metadata?.display_name
-  currentDisplayName = displayName || null
-  currentGender = session.user.user_metadata?.gender || null
-  currentPhone = session.user.user_metadata?.phone || null
-  currentFaculty = session.user.user_metadata?.faculty || null
-  currentYear = session.user.user_metadata?.study_year || null
-  const username = displayName || email.split('@')[0]
+async function finishBoot() {
+  const displayName = _bootDisplayName
+  const email = _bootEmail
 
-  document.getElementById('user-email') && (document.getElementById('user-email').textContent = email)
-  document.getElementById('greeting').textContent = `${I18N[currentLang].greeting}, ${username}! 👋`
-  document.getElementById('greeting-subtitle').textContent = I18N[currentLang].greetingSubtitle
-
-  updateProfileAvatar(username)
-  applyLanguage(currentLang)
-  updateProviderButtons()
-  updateColorSwatches()
-  setupScrollButton()
-  setupFlashcardKeyboard()
-  setupSwipeSidebar()
-  setupOutsideClick()
   await loadConversations()
   fetchSubscription()
 
@@ -82,6 +62,42 @@ window.addEventListener('DOMContentLoaded', async () => {
     history.replaceState(null, '', '/')
     loadConversation(convParam)
   }
+}
+
+window.addEventListener('DOMContentLoaded', async () => {
+  const session = await requireSession()
+  if (!session) return
+
+  const email = session.user.email
+  currentEmail = email
+  currentUserId = session.user.id
+  const displayName = session.user.user_metadata?.display_name
+  currentDisplayName = displayName || null
+  currentGender = session.user.user_metadata?.gender || null
+  currentPhone = session.user.user_metadata?.phone || null
+  currentFaculty = session.user.user_metadata?.faculty || null
+  currentYear = session.user.user_metadata?.study_year || null
+  const username = displayName || email.split('@')[0]
+  _bootDisplayName = displayName || null
+  _bootEmail = email
+
+  document.getElementById('user-email') && (document.getElementById('user-email').textContent = email)
+  document.getElementById('greeting').textContent = `${I18N[currentLang].greeting}, ${username}! 👋`
+  document.getElementById('greeting-subtitle').textContent = I18N[currentLang].greetingSubtitle
+
+  updateProfileAvatar(username)
+  applyLanguage(currentLang)
+  updateProviderButtons()
+  updateColorSwatches()
+  setupScrollButton()
+  setupFlashcardKeyboard()
+  setupSwipeSidebar()
+  setupOutsideClick()
+
+  const deviceOk = await registerDevice()
+  if (!deviceOk) return
+
+  await finishBoot()
 })
 
 // ── Profile avatar ─────────────────────────────────────────────────────────
@@ -131,10 +147,147 @@ function openProfileModal() {
   const genderEl = document.getElementById(`profile-gender-${currentGender}`)
   if (genderEl) genderEl.checked = true
   document.getElementById('profile-modal').classList.remove('hidden')
+  loadProfileDevices()
 }
 
 function closeProfileModal() {
   document.getElementById('profile-modal').classList.add('hidden')
+}
+
+// ── Device management ───────────────────────────────────────────────────────
+function getOrCreateDeviceId() {
+  let id = localStorage.getItem('sb-device-id')
+  if (!id) {
+    id = crypto.randomUUID()
+    localStorage.setItem('sb-device-id', id)
+  }
+  return id
+}
+
+function getDeviceLabel() {
+  const ua = navigator.userAgent
+  let os = 'Unknown'
+  if (/iPhone/.test(ua)) os = 'iPhone'
+  else if (/iPad/.test(ua)) os = 'iPad'
+  else if (/Android/.test(ua)) os = 'Android'
+  else if (/Macintosh|Mac OS X/.test(ua)) os = 'Mac'
+  else if (/Windows/.test(ua)) os = 'Windows'
+  else if (/Linux/.test(ua)) os = 'Linux'
+  let browser = ''
+  if (/Edg/.test(ua)) browser = 'Edge'
+  else if (/Chrome/.test(ua)) browser = 'Chrome'
+  else if (/Firefox/.test(ua)) browser = 'Firefox'
+  else if (/Safari/.test(ua)) browser = 'Safari'
+  return browser ? `${os} · ${browser}` : os
+}
+
+async function registerDevice() {
+  const token = getAccessToken()
+  if (!token) return true
+  const deviceId = getOrCreateDeviceId()
+  try {
+    const res = await fetch('/api/devices', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ deviceId, label: getDeviceLabel() })
+    })
+    if (res.status === 403) {
+      showDeviceLimitModal()
+      return false
+    }
+  } catch {}
+  return true
+}
+
+function renderDeviceItems(devices, container, onRemoved) {
+  const t = I18N[currentLang]
+  const myDeviceId = getOrCreateDeviceId()
+  container.innerHTML = ''
+  if (!devices.length) {
+    container.innerHTML = `<p class="text-xs text-slate-400 dark:text-gray-500 text-center py-2">—</p>`
+    return
+  }
+  devices.forEach(d => {
+    const isThis = d.device_id === myDeviceId
+    const row = document.createElement('div')
+    row.className = 'flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-slate-50 dark:bg-gray-700'
+    const info = document.createElement('div')
+    info.className = 'flex flex-col min-w-0'
+    const name = document.createElement('span')
+    name.className = 'text-sm text-slate-700 dark:text-gray-200 font-medium truncate'
+    name.textContent = d.label || 'Browser'
+    if (isThis) {
+      const tag = document.createElement('span')
+      tag.className = 'ml-1.5 text-[10px] bg-[var(--ac)] text-white rounded-full px-1.5 py-0.5 font-semibold'
+      tag.textContent = t.deviceThis
+      name.appendChild(tag)
+    }
+    const date = document.createElement('span')
+    date.className = 'text-[10px] text-slate-400 dark:text-gray-500 mt-0.5'
+    date.textContent = new Date(d.last_seen).toLocaleDateString()
+    info.appendChild(name)
+    info.appendChild(date)
+
+    const btn = document.createElement('button')
+    btn.className = 'text-xs text-red-500 hover:text-red-700 font-medium shrink-0 transition'
+    btn.textContent = t.deviceRemove
+    btn.onclick = async () => {
+      btn.textContent = t.deviceRemoving
+      btn.disabled = true
+      const token = getAccessToken()
+      try {
+        await fetch(`/api/devices/${encodeURIComponent(d.device_id)}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` }
+        })
+      } catch {}
+      onRemoved()
+    }
+
+    row.appendChild(info)
+    row.appendChild(btn)
+    container.appendChild(row)
+  })
+}
+
+async function loadProfileDevices() {
+  const token = getAccessToken()
+  if (!token) return
+  const container = document.getElementById('profile-devices-list')
+  try {
+    const res = await fetch('/api/devices', { headers: { Authorization: `Bearer ${token}` } })
+    if (!res.ok) return
+    const devices = await res.json()
+    renderDeviceItems(devices, container, loadProfileDevices)
+  } catch {}
+}
+
+async function showDeviceLimitModal() {
+  const t = I18N[currentLang]
+  document.getElementById('device-limit-title').textContent = t.deviceLimitTitle
+  document.getElementById('device-limit-desc').textContent = t.deviceLimitDesc
+  document.getElementById('device-limit-modal').classList.remove('hidden')
+  await refreshDeviceLimitList()
+}
+
+async function refreshDeviceLimitList() {
+  const token = getAccessToken()
+  const container = document.getElementById('device-limit-list')
+  try {
+    const res = await fetch('/api/devices', { headers: { Authorization: `Bearer ${token}` } })
+    if (!res.ok) return
+    const devices = await res.json()
+    renderDeviceItems(devices, container, async () => {
+      const ok = await registerDevice()
+      if (ok) {
+        document.getElementById('device-limit-modal').classList.add('hidden')
+        // complete boot now that device is registered
+        await finishBoot()
+      } else {
+        await refreshDeviceLimitList()
+      }
+    })
+  } catch {}
 }
 
 async function saveProfile() {

@@ -114,6 +114,12 @@ app.get('/api/files/:id/url',   requireAuth, requirePro, (req, res) => filesHand
 app.get('/api/conversations/:id/files',  requireAuth, (req, res) => convFilesHandler.listConvFiles(req, res))
 app.post('/api/conversations/:id/files', requireAuth, (req, res) => convFilesHandler.linkFile(req, res))
 
+const { makeDeviceHandler } = require('./src/device-handler')
+const deviceHandler = makeDeviceHandler()
+app.post('/api/devices',            requireAuth, (req, res) => deviceHandler.register(req, res))
+app.get('/api/devices',             requireAuth, (req, res) => deviceHandler.list(req, res))
+app.delete('/api/devices/:deviceId',requireAuth, (req, res) => deviceHandler.remove(req, res))
+
 app.use((req, res) => {
   res.status(404).json({ error: 'Not found' })
 })
