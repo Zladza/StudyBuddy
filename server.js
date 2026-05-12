@@ -122,6 +122,10 @@ app.post('/api/devices',            requireAuth, (req, res) => deviceHandler.reg
 app.get('/api/devices',             requireAuth, (req, res) => deviceHandler.list(req, res))
 app.delete('/api/devices/:deviceId',requireAuth, (req, res) => deviceHandler.remove(req, res))
 
+const { makeAdminHandler } = require('./src/admin-handler')
+const admin = makeAdminHandler()
+app.get('/api/admin/users', requireAuth, admin.requireAdmin, (req, res) => admin.listUsers(req, res))
+
 app.use((req, res) => {
   res.status(404).json({ error: 'Not found' })
 })

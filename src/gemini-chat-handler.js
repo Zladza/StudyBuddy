@@ -36,7 +36,7 @@ async function handleChat(req, res, geminiClient) {
   const contextLimit = files.length > 0 ? 8 : 20
   const recentMessages = messages.slice(-contextLimit)
 
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash', systemInstruction: buildSystemPrompt(gender, faculty, studyYear) })
+  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash', systemInstruction: buildSystemPrompt(gender, faculty, studyYear, language) })
   const history = buildGeminiHistory(recentMessages.slice(0, -1), language)
   const lastMessage = recentMessages[recentMessages.length - 1]
   const parts = buildGeminiParts(lastMessage, files, language)

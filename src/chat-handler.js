@@ -139,7 +139,7 @@ async function handleChat(req, res, anthropicClient) {
   const contextLimit = files.length > 0 ? 8 : 20
   const recentMessages = messages.slice(-contextLimit)
   const anthropicMessages = buildMessages(recentMessages, files, language)
-  const systemPrompt = buildSystemPrompt(gender, faculty, studyYear)
+  const systemPrompt = buildSystemPrompt(gender, faculty, studyYear, language)
 
   res.setHeader('Content-Type', 'text/event-stream')
   res.setHeader('Cache-Control', 'no-cache')
@@ -174,8 +174,9 @@ async function handleChat(req, res, anthropicClient) {
   }
 }
 
-function buildSystemPrompt(gender, faculty, studyYear) {
+function buildSystemPrompt(gender, faculty, studyYear, language = 'sr') {
   const lines = []
+  if (language === 'en') lines.push('LANGUAGE OVERRIDE: The student has selected English as their language. You MUST reply in English only, for every message, regardless of what language the student writes in.')
   if (gender === 'male') lines.push('Student je muškog pola. Uvek ga oslovljavaj u muškom rodu (npr. "završio si", "spreman si", "bio si", "dobar").')
   if (gender === 'female') lines.push('Student je ženskog pola. Uvek je oslovljavaj u ženskom rodu (npr. "završila si", "spremna si", "bila si", "dobra").')
   if (faculty) lines.push(`Student studira na: ${faculty}.`)

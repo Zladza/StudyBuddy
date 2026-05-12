@@ -293,6 +293,20 @@ async function refreshDeviceLimitList() {
   } catch {}
 }
 
+async function changeEmail() {
+  const newEmail = document.getElementById('profile-email').value.trim()
+  if (!newEmail || newEmail === currentEmail) return
+  const btn = document.getElementById('change-email-btn')
+  const hint = document.getElementById('email-change-hint')
+  btn.disabled = true
+  if (!sb) await initAuth()
+  const { error } = await sb.auth.updateUser({ email: newEmail })
+  btn.disabled = false
+  if (error) { showToast(I18N[currentLang].aiError, 'error'); return }
+  hint.classList.remove('hidden')
+  setTimeout(() => hint.classList.add('hidden'), 6000)
+}
+
 async function saveProfile() {
   const name = document.getElementById('profile-name').value.trim()
   if (!name) { document.getElementById('profile-name').focus(); return }
@@ -2361,12 +2375,25 @@ async function createNewNote() {
   notesOpenEdit(note.id)
 }
 
+function showConfirm(message, onConfirm) {
+  document.getElementById('confirm-message').textContent = message
+  document.getElementById('confirm-ok-btn').onclick = () => { closeConfirm(); onConfirm() }
+  document.getElementById('confirm-modal').classList.remove('hidden')
+}
+
+function closeConfirm() {
+  document.getElementById('confirm-modal').classList.add('hidden')
+}
+
 async function deleteNote(id) {
-  const token = getAccessToken()
-  await fetch(`/api/notes/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } })
-  notesCache = notesCache.filter(n => n.id !== id)
-  if (currentNoteId === id) notesShowList()
-  else renderNotesList()
+  const t = I18N[currentLang]
+  showConfirm(t.confirmDeleteNote || 'Obrisati ovu belešku?', async () => {
+    const token = getAccessToken()
+    await fetch(`/api/notes/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } })
+    notesCache = notesCache.filter(n => n.id !== id)
+    if (currentNoteId === id) notesShowList()
+    else renderNotesList()
+  })
 }
 
 function scheduleNoteSave() {
@@ -2818,7 +2845,8 @@ async function refreshLibrary() {
       const icon = f.mime_type === 'application/pdf' ? '📄' : '🖼️'
 
       const card = document.createElement('div')
-      card.className = 'flex items-start gap-3 bg-slate-50 dark:bg-gray-750 rounded-xl p-3 border border-slate-100 dark:border-gray-700'
+      card.className = 'flex items-start gap-3 bg-slate-50 dark:bg-gray-750 rounded-xl p-3 border border-slate-100 dark:border-gray-700 border-l-2'
+      card.style.borderLeftColor = 'var(--ac)'
 
       const iconSpan = document.createElement('span')
       iconSpan.className = 'text-2xl flex-shrink-0'
@@ -2850,7 +2878,8 @@ async function refreshLibrary() {
       downloadBtn.addEventListener('click', () => downloadLibraryFile(f.id, f.name))
 
       const attachBtn = document.createElement('button')
-      attachBtn.className = 'text-xs bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 px-2 py-0.5 rounded hover:bg-green-100 dark:hover:bg-green-900/50 transition'
+      attachBtn.className = 'text-xs text-white px-2 py-0.5 rounded transition'
+      attachBtn.style.backgroundColor = 'var(--ac)'
       attachBtn.textContent = I18N[currentLang].libraryAttach
       attachBtn.addEventListener('click', () => attachLibraryFile(f.id, f.name, f.mime_type, f.size))
 
@@ -2909,19 +2938,22 @@ async function attachLibraryFile(id, name, mimeType, size) {
 }
 
 async function deleteLibraryFile(id) {
-  const token = getAccessToken()
-  if (!token) return
-  try {
-    const res = await fetch(`/api/files/${id}`, {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    if (!res.ok) { showToast(I18N[currentLang].fileDeleteError, 'error'); return }
-    attachedFiles = attachedFiles.filter(f => f.id !== id)
-    renderAttachedFilesBar()
-    showToast(I18N[currentLang].fileDeleted, 'success')
-    await refreshLibrary()
-  } catch { showToast(I18N[currentLang].fileDeleteError, 'error') }
+  const t = I18N[currentLang]
+  showConfirm(t.confirmDeleteFile || 'Obrisati ovaj fajl?', async () => {
+    const token = getAccessToken()
+    if (!token) return
+    try {
+      const res = await fetch(`/api/files/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (!res.ok) { showToast(t.fileDeleteError, 'error'); return }
+      attachedFiles = attachedFiles.filter(f => f.id !== id)
+      renderAttachedFilesBar()
+      showToast(t.fileDeleted, 'success')
+      await refreshLibrary()
+    } catch { showToast(t.fileDeleteError, 'error') }
+  })
 }
 
 // ── Subscription / plan ────────────────────────────────────────────────────
@@ -2948,6 +2980,8 @@ function updateSubscriptionUI() {
   const usageEl = document.getElementById('usage-counter')
   const upgradeBtn = document.getElementById('upgrade-btn')
   const planLabel = document.getElementById('avatar-plan-label')
+  const adminLink = document.getElementById('admin-link')
+
   if (isPro) {
     usageEl.classList.add('hidden')
     upgradeBtn.classList.add('hidden')
@@ -2961,6 +2995,10 @@ function updateSubscriptionUI() {
     document.getElementById('usage-messages-count').textContent = `${count}/${LIMIT}`
     document.getElementById('usage-messages-bar').style.width = `${Math.min(count / LIMIT * 100, 100)}%`
   }
+
+  // Show admin link for VIP users (identified server-side; client check by email in VIP_EMAILS not available,
+  // so we show it for all Pro and let server reject non-VIPs)
+  if (adminLink) adminLink.classList.toggle('hidden', !isPro)
 }
 
 function openPaywallModal(type, limitType, customDesc) {

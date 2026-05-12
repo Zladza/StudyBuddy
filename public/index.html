@@ -161,13 +161,19 @@
               <span class="text-sm text-slate-700 dark:text-gray-200" data-i18n="genderFemale">Žensko</span>
             </label>
           </div>
+          <p class="text-[11px] text-slate-400 dark:text-gray-500 mt-1.5" data-i18n="genderHint">AI koristi ovu informaciju da te oslovljava u ispravnom gramatičkom rodu na srpskom.</p>
         </div>
 
-        <!-- Email (read-only) -->
+        <!-- Email -->
         <div>
           <label class="text-xs font-medium text-slate-500 dark:text-gray-400 mb-1 block" data-i18n="profileEmail">Email</label>
-          <input id="profile-email" type="email" readonly
-            class="w-full border border-slate-200 dark:border-gray-600 bg-slate-50 dark:bg-gray-750 text-slate-400 dark:text-gray-500 rounded-lg px-3 py-2 text-sm outline-none cursor-not-allowed">
+          <div class="flex gap-2">
+            <input id="profile-email" type="email"
+              class="flex-1 border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-slate-800 dark:text-gray-100 rounded-lg px-3 py-2 text-sm outline-none focus:border-[var(--ac)]">
+            <button onclick="changeEmail()" id="change-email-btn"
+              class="text-xs px-3 py-1 rounded-lg border border-slate-200 dark:border-gray-600 text-slate-600 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-700 transition shrink-0" data-i18n="changeEmail">Promeni</button>
+          </div>
+          <p id="email-change-hint" class="hidden text-[11px] text-emerald-600 dark:text-emerald-400 mt-1" data-i18n="emailChangeHint">Poslaćemo ti link za potvrdu na novi email.</p>
         </div>
 
         <!-- Phone -->
@@ -423,6 +429,9 @@
         <button onclick="openSettings();closeAvatarMenu()" class="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-gray-700 transition flex items-center gap-2">
           ⚙️ <span data-i18n="settings">Podešavanja</span>
         </button>
+        <a id="admin-link" href="/admin.html" class="hidden w-full text-left px-3 py-2 text-sm text-purple-600 dark:text-purple-400 hover:bg-slate-50 dark:hover:bg-gray-700 transition flex items-center gap-2">
+          🛡 Admin
+        </a>
       </div>
     </div>
   </aside>
