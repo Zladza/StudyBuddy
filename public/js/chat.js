@@ -2455,7 +2455,7 @@ function renderGroupsList() {
   }
   list.innerHTML = groupsList.map(g => `
     <button onclick="openGroup('${g.id}')"
-      class="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-slate-100 dark:hover:bg-gray-700 transition text-slate-700 dark:text-gray-200 truncate flex items-center gap-2">
+      class="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-white/10 transition text-white truncate flex items-center gap-2">
       <span class="text-base">👥</span>
       <span class="truncate">${g.name}</span>
     </button>
@@ -2947,10 +2947,13 @@ function updateSubscriptionUI() {
 
   const usageEl = document.getElementById('usage-counter')
   const upgradeBtn = document.getElementById('upgrade-btn')
+  const planLabel = document.getElementById('avatar-plan-label')
   if (isPro) {
     usageEl.classList.add('hidden')
     upgradeBtn.classList.add('hidden')
+    planLabel?.classList.remove('hidden')
   } else {
+    planLabel?.classList.add('hidden')
     usageEl.classList.remove('hidden')
     upgradeBtn.classList.remove('hidden')
     const LIMIT = 10
