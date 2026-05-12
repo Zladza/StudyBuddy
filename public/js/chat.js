@@ -1126,6 +1126,7 @@ function addBubbleActions(row) {
 
 // ── Follow-up questions ────────────────────────────────────────────────────
 async function loadFollowupQuestions(assistantRow) {
+  if (subscriptionState.plan !== 'pro') return
   const token = getAccessToken()
   if (!token || currentMessages.length < 2) return
 
@@ -1250,7 +1251,7 @@ function startEditMessage(row) {
   saveBtn.className = 'text-xs bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded-lg transition'
   saveBtn.onclick = async () => {
     const newText = ta.value.trim()
-    if (!newText) { cancelEdit(); return }
+    if (!newText) { bubble.textContent = originalText; return }
 
     rows.slice(idx + 1).forEach(r => r.remove())
     currentMessages.splice(idx + 1)
@@ -1295,7 +1296,10 @@ async function resendFrom(userMsgIdx, text) {
       body: JSON.stringify({
         messages: currentMessages.map(m => ({ role: m.role, content: m.content })),
         language: currentLang,
-        provider: currentProvider
+        provider: currentProvider,
+        gender: currentGender,
+        faculty: currentFaculty,
+        studyYear: currentYear
       }),
       signal: currentAbortController.signal
     })
@@ -2548,18 +2552,25 @@ function renderGroupMessage(msg, container) {
   const isOwn = !isAI && currentUserId && msg.user_id === currentUserId
   const name = msg.display_name || (isAI ? 'StudyBuddy' : 'Student')
   el.className = `flex flex-col ${isOwn ? 'items-end' : 'items-start'} mb-3`
-  el.innerHTML = `
-    <span class="text-[10px] text-slate-400 dark:text-gray-500 mb-0.5 px-1">${isAI ? '🤖 ' : ''}${name}</span>
-    <div class="max-w-[80%] px-3 py-2 rounded-2xl text-sm leading-relaxed ${
-      isAI
-        ? 'bg-slate-100 dark:bg-gray-700 text-slate-800 dark:text-gray-100'
-        : isOwn
-          ? 'bg-[var(--ac)] text-white'
-          : 'bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-600 text-slate-800 dark:text-gray-100'
-    }">${msg.content.replace(/\n/g, '<br>')}</div>
-  `
-  if (container) container.appendChild(el)
-  else document.getElementById('group-messages').appendChild(el)
+
+  const nameEl = document.createElement('span')
+  nameEl.className = 'text-[10px] text-slate-400 dark:text-gray-500 mb-0.5 px-1'
+  nameEl.textContent = (isAI ? '🤖 ' : '') + name
+
+  const bubble = document.createElement('div')
+  bubble.className = `max-w-[80%] px-3 py-2 rounded-2xl text-sm leading-relaxed ${
+    isAI
+      ? 'bg-slate-100 dark:bg-gray-700 text-slate-800 dark:text-gray-100'
+      : isOwn
+        ? 'bg-[var(--ac)] text-white'
+        : 'bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-600 text-slate-800 dark:text-gray-100'
+  }`
+  bubble.textContent = msg.content
+
+  el.appendChild(nameEl)
+  el.appendChild(bubble)
+  const target = container || document.getElementById('group-messages')
+  if (target) target.appendChild(el)
 }
 
 async function sendGroupMessage() {
@@ -2659,6 +2670,10 @@ async function openGroupInfo() {
   document.getElementById('group-lang-en').textContent = t.groupLangEn
   updateGroupLangButtons(group.lang || 'sr')
 
+  // Delete button — creator only
+  const isCreator = group.created_by === currentUserId
+  document.getElementById('delete-group-btn').classList.toggle('hidden', !isCreator)
+
   document.getElementById('group-info-modal').classList.remove('hidden')
 }
 
@@ -2695,6 +2710,21 @@ async function leaveGroup() {
     method: 'DELETE',
     headers: { Authorization: `Bearer ${token}` }
   })
+  groupsList = groupsList.filter(g => g.id !== currentGroupId)
+  renderGroupsList()
+  closeGroupInfoModal()
+  closeGroupView()
+  showToast(I18N[currentLang].deleteSuccess, 'success')
+}
+
+async function deleteGroup() {
+  if (!currentGroupId) return
+  const token = getAccessToken()
+  const res = await fetch(`/api/groups/${currentGroupId}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  if (!res.ok) { showToast(I18N[currentLang].aiError, 'error'); return }
   groupsList = groupsList.filter(g => g.id !== currentGroupId)
   renderGroupsList()
   closeGroupInfoModal()

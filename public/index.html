@@ -753,7 +753,8 @@
         </div>
       </div>
       <button onclick="openInviteModal();closeGroupInfoModal()" class="w-full accent-btn text-white py-2 rounded-lg text-sm font-medium transition mb-2" data-i18n="inviteTitle">Pozovi člana</button>
-      <button onclick="leaveGroup()" class="w-full text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 py-2 rounded-lg transition" data-i18n="leaveGroup">Napusti grupu</button>
+      <button onclick="leaveGroup()" class="w-full text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 py-2 rounded-lg transition mb-1" data-i18n="leaveGroup">Napusti grupu</button>
+      <button id="delete-group-btn" onclick="deleteGroup()" class="hidden w-full text-xs text-red-600 font-semibold hover:bg-red-50 dark:hover:bg-red-900/20 py-2 rounded-lg transition" data-i18n="deleteGroup">Obriši grupu</button>
     </div>
   </div>
 
