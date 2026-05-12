@@ -66,6 +66,7 @@ app.post('/api/chat', requireAuth, limitFree('messages'), (req, res) => {
 })
 
 app.get('/api/subscription', requireAuth, async (req, res) => {
+  res.setHeader('Cache-Control', 'no-store')
   const plan = await getPlan(req.user.id, req.user.email)
   const usage = await getUsageToday(req.user.id)
   res.json({
