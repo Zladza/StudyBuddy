@@ -443,7 +443,7 @@ function setProvider(provider) {
 }
 
 function updateProviderButtons() {
-  const meta = PROVIDER_META[currentProvider]
+  const meta = PROVIDER_META[currentProvider] || PROVIDER_META['openai']
   const pill = document.getElementById('model-pill')
   if (!pill) return
   document.getElementById('model-pill-icon').innerHTML = meta.icon
