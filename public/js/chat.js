@@ -578,6 +578,7 @@ function renderConversationList() {
 }
 
 async function loadConversation(id) {
+  if (currentGroupId) closeGroupView()
   const token = getAccessToken()
   if (!token) return
   const res = await fetch(`/api/history/${id}`, { headers: { Authorization: `Bearer ${token}` } })
