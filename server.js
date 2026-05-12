@@ -65,6 +65,14 @@ app.post('/api/chat', requireAuth, limitFree('messages'), (req, res) => {
   return handleClaude(req, res)
 })
 
+app.get('/api/debug-whoami', requireAuth, (req, res) => {
+  res.json({
+    email: req.user.email,
+    id: req.user.id,
+    VIP_EMAILS: process.env.VIP_EMAILS || '(not set)'
+  })
+})
+
 app.get('/api/subscription', requireAuth, async (req, res) => {
   res.setHeader('Cache-Control', 'no-store')
   const plan = await getPlan(req.user.id, req.user.email)
