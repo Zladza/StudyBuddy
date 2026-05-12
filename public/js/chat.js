@@ -778,8 +778,11 @@ function handlePdfSelect(event) {
               body: JSON.stringify({ fileId: data.id })
             }).catch(() => {})
           }
+        } else {
+          const err = await res.json().catch(() => ({}))
+          showToast(`Upload failed: ${err.error || res.status}`, 'error')
         }
-      } catch (err) { console.warn('File upload failed:', err) }
+      } catch (err) { showToast('Upload failed', 'error') }
     }
     fileEntry.uploading = false
     renderAttachedFilesBar()
@@ -819,8 +822,11 @@ function handleImageSelect(event) {
               body: JSON.stringify({ fileId: data.id })
             }).catch(() => {})
           }
+        } else {
+          const err = await res.json().catch(() => ({}))
+          showToast(`Upload failed: ${err.error || res.status}`, 'error')
         }
-      } catch (err) { console.warn('File upload failed:', err) }
+      } catch (err) { showToast('Upload failed', 'error') }
     }
     fileEntry.uploading = false
     renderAttachedFilesBar()
