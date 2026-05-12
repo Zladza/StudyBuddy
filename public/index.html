@@ -412,7 +412,7 @@
       <div id="profile-avatar" class="profile-avatar cursor-pointer" onclick="toggleAvatarMenu()" title="" style="background:rgba(255,255,255,0.18);border:1.5px solid rgba(255,255,255,0.3)"></div>
       <div id="avatar-dropdown" class="hidden absolute left-0 bottom-full mb-1.5 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl shadow-lg py-1.5 w-44 z-20">
         <div id="avatar-plan-label" class="hidden px-3 py-1.5 border-b border-slate-100 dark:border-gray-700 mb-1">
-          <span class="text-[10px] font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">✦ Pro Plan</span>
+          <span class="text-[10px] font-semibold uppercase tracking-wider text-yellow-500">✦ Pro Plan</span>
         </div>
         <button id="upgrade-btn" onclick="openPaywallModal('pro');closeAvatarMenu()" class="hidden w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-gray-700 transition flex items-center gap-2">
           ⚡ <span data-i18n="upgradeCta">Nadogradi na Pro</span>
@@ -630,12 +630,12 @@
     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-slate-200 dark:border-gray-700 w-full max-w-lg flex flex-col" style="max-height:85vh">
       <div class="flex items-center justify-between px-5 pt-5 pb-4 border-b border-slate-100 dark:border-gray-700 shrink-0">
         <div class="flex items-center gap-2">
-          <button id="notes-back-btn" onclick="notesShowList()" class="hidden text-slate-400 hover:text-slate-600 dark:text-gray-500 dark:hover:text-gray-300 text-sm transition">←</button>
+          <button id="notes-back-btn" onclick="notesShowList()" class="hidden text-xs font-medium text-slate-500 dark:text-gray-400 hover:text-slate-800 dark:hover:text-gray-100 px-3 py-1 rounded-lg border border-slate-200 dark:border-gray-600 transition" data-i18n="done">Gotovo</button>
           <h2 class="text-sm font-semibold text-slate-800 dark:text-gray-100" data-i18n="notesTitle">Beleške</h2>
         </div>
         <div class="flex items-center gap-2">
           <button id="notes-new-btn" onclick="createNewNote()" class="text-xs accent-btn text-white px-3 py-1.5 rounded-lg transition" data-i18n="newNote">Nova beleška</button>
-          <button onclick="closeNotes()" class="text-xs font-medium text-slate-500 dark:text-gray-400 hover:text-slate-800 dark:hover:text-gray-100 px-3 py-1 rounded-lg border border-slate-200 dark:border-gray-600 transition" data-i18n="done">Gotovo</button>
+          <button onclick="closeNotes()" class="text-slate-400 hover:text-slate-600 dark:text-gray-500 dark:hover:text-gray-300 text-xl leading-none">×</button>
         </div>
       </div>
       <!-- Description (always visible) -->
