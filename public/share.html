@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>(function(){if(localStorage.getItem('sb-theme')==='dark'||(!localStorage.getItem('sb-theme')&&window.matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark')})()</script>
   <title>StudyBuddy – Deljeni razgovor</title>
   <script>tailwind={theme:{extend:{}}}</script>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -122,7 +123,7 @@
       if (!res.ok) {
         btn.disabled = false
         btn.textContent = 'Nastavi u svom chatu →'
-        alert('Greška pri kopiranju razgovora.')
+        showForkError('Greška pri kopiranju razgovora.')
         return
       }
       const { conversationId } = await res.json()
@@ -131,6 +132,18 @@
 
     function showError(msg) {
       document.getElementById('loading-msg').textContent = msg
+    }
+
+    function showForkError(msg) {
+      let el = document.getElementById('fork-error')
+      if (!el) {
+        el = document.createElement('p')
+        el.id = 'fork-error'
+        el.className = 'text-xs text-red-500 text-right mt-2'
+        document.getElementById('messages').before(el)
+      }
+      el.textContent = msg
+      setTimeout(() => el.remove(), 4000)
     }
 
     init()

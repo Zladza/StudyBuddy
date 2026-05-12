@@ -54,7 +54,7 @@ async function buildOpenAIMessages(messages, files = [], language = 'sr') {
 async function handleChat(req, res, openaiClient) {
   const validationError = validateRequest(req.body)
   if (validationError) return res.status(400).json({ error: validationError })
-  const { messages, language, gender, faculty, studyYear, files: rawFiles = [], claudeModel } = req.body
+  const { messages, language, gender, faculty, studyYear, files: rawFiles = [] } = req.body
   const files = Array.isArray(rawFiles) ? rawFiles.filter(f => f && f.base64 && f.mediaType) : []
   const client = openaiClient || new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
   const contextLimit = files.length > 0 ? 8 : 20

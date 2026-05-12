@@ -95,6 +95,10 @@
       return '<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-500 dark:bg-gray-800 dark:text-gray-400">Free</span>'
     }
 
+    function escHtml(str) {
+      return String(str ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+    }
+
     function fmtDate(iso) {
       if (!iso) return '—'
       const d = new Date(iso)
@@ -115,7 +119,7 @@
 
       tbody.innerHTML = users.map(u => `
         <tr class="hover:bg-slate-50 dark:hover:bg-gray-800/50 transition">
-          <td class="px-4 py-3 font-mono text-xs">${u.email}</td>
+          <td class="px-4 py-3 font-mono text-xs">${escHtml(u.email)}</td>
           <td class="px-4 py-3">${planBadge(u.plan)}</td>
           <td class="px-4 py-3 text-right tabular-nums">${u.messagestoday || 0}</td>
           <td class="px-4 py-3 text-right tabular-nums">${u.uploadstoday || 0}</td>
@@ -180,7 +184,7 @@
     }
 
     // Dark mode sync with main app
-    if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    if (localStorage.getItem('sb-theme') === 'dark' || (!localStorage.getItem('sb-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
       document.documentElement.classList.add('dark')
     }
 

@@ -1868,7 +1868,16 @@ function showContinueBanner() {
   const banner = document.createElement('div')
   banner.className = 'fixed top-16 left-1/2 z-40 -translate-x-1/2 flex items-center gap-2 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-full shadow-md px-4 py-2 text-xs text-slate-500 dark:text-gray-400 max-w-xs'
   banner.style.transition = 'opacity 0.4s'
-  banner.innerHTML = `<span>↩</span><span class="truncate">${I18N[currentLang].continueFrom}: <em>"${snippet}"</em></span>`
+  const arrowEl = document.createElement('span')
+  arrowEl.textContent = '↩'
+  const textEl = document.createElement('span')
+  textEl.className = 'truncate'
+  const em = document.createElement('em')
+  em.textContent = `"${snippet}"`
+  textEl.textContent = `${I18N[currentLang].continueFrom}: `
+  textEl.appendChild(em)
+  banner.appendChild(arrowEl)
+  banner.appendChild(textEl)
   document.body.appendChild(banner)
 
   setTimeout(() => { banner.style.opacity = '0'; setTimeout(() => banner.remove(), 400) }, 3000)
@@ -2050,7 +2059,14 @@ function openGlossaryModal(terms) {
   terms.forEach(({ term, definition }) => {
     const card = document.createElement('div')
     card.className = 'rounded-xl border border-slate-100 dark:border-gray-700 p-3'
-    card.innerHTML = `<p class="text-sm font-semibold text-slate-800 dark:text-gray-100 mb-1">${term}</p><p class="text-xs text-slate-500 dark:text-gray-400 leading-relaxed">${definition}</p>`
+    const termEl = document.createElement('p')
+    termEl.className = 'text-sm font-semibold text-slate-800 dark:text-gray-100 mb-1'
+    termEl.textContent = term
+    const defEl = document.createElement('p')
+    defEl.className = 'text-xs text-slate-500 dark:text-gray-400 leading-relaxed'
+    defEl.textContent = definition
+    card.appendChild(termEl)
+    card.appendChild(defEl)
     list.appendChild(card)
   })
   document.getElementById('glossary-modal').classList.remove('hidden')
@@ -2359,11 +2375,19 @@ function renderNotesList() {
     const card = document.createElement('div')
     card.className = 'note-card relative bg-slate-50 dark:bg-gray-700 border border-slate-200 dark:border-gray-600 rounded-xl p-3'
     const preview = (note.content || '').split('\n').slice(0, 3).join('\n')
-    card.innerHTML = `
-      <p class="text-xs font-semibold text-slate-800 dark:text-gray-100 mb-1 truncate">${note.title || (I18N[currentLang].newNote)}</p>
-      <p class="text-[11px] text-slate-500 dark:text-gray-400 leading-relaxed line-clamp-3 whitespace-pre-wrap">${preview}</p>
-      <button class="note-delete absolute top-2 right-2 text-slate-300 dark:text-gray-600 hover:text-red-400 text-sm leading-none" onclick="event.stopPropagation();deleteNote('${note.id}')">×</button>
-    `
+    const titleEl = document.createElement('p')
+    titleEl.className = 'text-xs font-semibold text-slate-800 dark:text-gray-100 mb-1 truncate'
+    titleEl.textContent = note.title || I18N[currentLang].newNote
+    const previewEl = document.createElement('p')
+    previewEl.className = 'text-[11px] text-slate-500 dark:text-gray-400 leading-relaxed line-clamp-3 whitespace-pre-wrap'
+    previewEl.textContent = preview
+    const delBtn = document.createElement('button')
+    delBtn.className = 'note-delete absolute top-2 right-2 text-slate-300 dark:text-gray-600 hover:text-red-400 text-sm leading-none'
+    delBtn.textContent = '×'
+    delBtn.onclick = (e) => { e.stopPropagation(); deleteNote(note.id) }
+    card.appendChild(titleEl)
+    card.appendChild(previewEl)
+    card.appendChild(delBtn)
     card.onclick = () => notesOpenEdit(note.id)
     cards.appendChild(card)
   })
