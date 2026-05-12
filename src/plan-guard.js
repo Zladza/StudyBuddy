@@ -3,12 +3,9 @@ const { createClient } = require('@supabase/supabase-js')
 const LIMITS = { messages: 10, uploads: 1 }
 
 function isVip(email) {
-  console.log('[VIP check] email:', email, '| VIP_EMAILS:', process.env.VIP_EMAILS)
   if (!email || !process.env.VIP_EMAILS) return false
   const list = process.env.VIP_EMAILS.split(',').map(e => e.trim().toLowerCase())
-  const result = list.includes(email.toLowerCase())
-  console.log('[VIP check] result:', result)
-  return result
+  return list.includes(email.toLowerCase())
 }
 
 function makePlanGuard(supabaseClient) {

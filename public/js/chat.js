@@ -2265,16 +2265,15 @@ async function loadNotes() {
 
 async function openNotes() {
   const isPro = subscriptionState.plan === 'pro'
-  const gate = document.getElementById('notes-pro-gate')
+  const upgradeBtn = document.getElementById('notes-upgrade-btn')
   const listView = document.getElementById('notes-list-view')
   const newBtn = document.getElementById('notes-new-btn')
-  gate.classList.toggle('hidden', isPro)
+  upgradeBtn.classList.toggle('hidden', isPro)
   listView.classList.toggle('hidden', !isPro)
   newBtn.classList.toggle('hidden', !isPro)
   if (!isPro) {
-    document.getElementById('notes-pro-desc').textContent = I18N[currentLang].notesProDesc
     const url = subscriptionState.lsBuyUrl
-    if (url) document.getElementById('notes-upgrade-btn').href = `${url}?checkout[custom][user_id]=${encodeURIComponent(currentUserId || '')}`
+    if (url) upgradeBtn.href = `${url}?checkout[custom][user_id]=${encodeURIComponent(currentUserId || '')}`
   }
   document.getElementById('notes-modal').classList.remove('hidden')
   if (isPro) { await loadNotes(); notesShowList() }
@@ -2684,16 +2683,15 @@ function unsubscribeFromGroup() {
 // ── File Library ───────────────────────────────────────────────────────────
 async function openLibrary() {
   const isPro = subscriptionState.plan === 'pro'
-  const gate = document.getElementById('library-pro-gate')
+  const upgradeBtn = document.getElementById('library-upgrade-btn')
   const grid = document.getElementById('library-grid')
   const empty = document.getElementById('library-empty')
-  gate.classList.toggle('hidden', isPro)
+  upgradeBtn.classList.toggle('hidden', isPro)
   grid.classList.toggle('hidden', !isPro)
   empty.classList.toggle('hidden', true)
   if (!isPro) {
-    document.getElementById('library-pro-desc').textContent = I18N[currentLang].filesProDesc
     const url = subscriptionState.lsBuyUrl
-    if (url) document.getElementById('library-upgrade-btn').href = `${url}?checkout[custom][user_id]=${encodeURIComponent(currentUserId || '')}`
+    if (url) upgradeBtn.href = `${url}?checkout[custom][user_id]=${encodeURIComponent(currentUserId || '')}`
   }
   document.getElementById('library-modal').classList.remove('hidden')
   closeSidebar()
