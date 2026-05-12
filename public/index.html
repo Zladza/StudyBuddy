@@ -417,9 +417,11 @@
     <div id="avatar-container" class="relative">
       <div id="profile-avatar" class="profile-avatar cursor-pointer" onclick="toggleAvatarMenu()" title="" style="background:rgba(255,255,255,0.18);border:1.5px solid rgba(255,255,255,0.3)"></div>
       <div id="avatar-dropdown" class="hidden absolute left-0 bottom-full mb-1.5 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl shadow-lg py-1.5 w-44 z-20">
+        <a id="admin-link" href="/admin.html" class="hidden w-full text-left px-3 py-2 text-sm text-purple-600 dark:text-purple-400 hover:bg-slate-50 dark:hover:bg-gray-700 transition flex items-center gap-2">
+          🛡 Admin
+        </a>
         <div id="avatar-plan-label" class="hidden px-3 py-1.5 border-b border-slate-100 dark:border-gray-700 mb-1">
           <span class="text-[10px] font-semibold uppercase tracking-wider text-yellow-500">✦ Pro Plan</span>
-          <a id="admin-link" href="/admin.html" class="hidden mt-1 flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-purple-500">🛡 Admin</a>
         </div>
         <button id="upgrade-btn" onclick="openPaywallModal('pro');closeAvatarMenu()" class="hidden w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-gray-700 transition flex items-center gap-2">
           ⚡ <span data-i18n="upgradeCta">Nadogradi na Pro</span>
