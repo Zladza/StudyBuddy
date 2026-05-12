@@ -3,6 +3,8 @@
 // ── State ──────────────────────────────────────────────────────────────────
 let currentLang = localStorage.getItem('sb-lang') || (navigator.language.startsWith('sr') ? 'sr' : 'en')
 let currentProvider = localStorage.getItem('sb-provider') || 'openai'
+// Migrate old 'claude' value to 'claude-sonnet'
+if (currentProvider === 'claude') { currentProvider = 'claude-sonnet'; localStorage.setItem('sb-provider', 'claude-sonnet') }
 let currentConversationId = null
 let openConvMenuId = null
 let currentSubjectFilter = null
