@@ -506,10 +506,12 @@
     <!-- Conversation files bar (unified attachment indicator) -->
     <div id="conv-files-bar" class="hidden mx-4 mb-2 flex items-center gap-2 overflow-x-auto py-1"></div>
 
+    <!-- File inputs live outside the panel so hiding the panel doesn't block the native file picker -->
+    <input type="file" id="pdf-input" accept=".pdf" class="hidden" onchange="handlePdfSelect(event)">
+    <input type="file" id="image-input" accept="image/jpeg,image/png,image/gif,image/webp" class="hidden" onchange="handleImageSelect(event)">
+
     <!-- Attach panel (shared by main chat and group chat) -->
     <div id="attach-panel" class="hidden mx-4 mb-2 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl shadow-lg py-1.5 overflow-hidden">
-      <input type="file" id="pdf-input" accept=".pdf" class="hidden" onchange="handlePdfSelect(event)">
-      <input type="file" id="image-input" accept="image/jpeg,image/png,image/gif,image/webp" class="hidden" onchange="handleImageSelect(event)">
       <button onclick="document.getElementById('pdf-input').click();closeAttachPanel()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-gray-700 transition text-left">
         📎 <span data-i18n="addFile">Dodaj fajl</span>
       </button>
@@ -630,12 +632,12 @@
     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-slate-200 dark:border-gray-700 w-full max-w-lg flex flex-col" style="max-height:85vh">
       <div class="flex items-center justify-between px-5 pt-5 pb-4 border-b border-slate-100 dark:border-gray-700 shrink-0">
         <div class="flex items-center gap-2">
-          <button id="notes-back-btn" onclick="notesShowList()" class="hidden text-xs font-medium text-slate-500 dark:text-gray-400 hover:text-slate-800 dark:hover:text-gray-100 px-3 py-1 rounded-lg border border-slate-200 dark:border-gray-600 transition" data-i18n="done">Gotovo</button>
+          <button id="notes-back-btn" onclick="notesShowList()" class="hidden text-slate-400 hover:text-slate-600 dark:text-gray-500 dark:hover:text-gray-300 text-sm transition">←</button>
           <h2 class="text-sm font-semibold text-slate-800 dark:text-gray-100" data-i18n="notesTitle">Beleške</h2>
         </div>
         <div class="flex items-center gap-2">
           <button id="notes-new-btn" onclick="createNewNote()" class="text-xs accent-btn text-white px-3 py-1.5 rounded-lg transition" data-i18n="newNote">Nova beleška</button>
-          <button onclick="closeNotes()" class="text-slate-400 hover:text-slate-600 dark:text-gray-500 dark:hover:text-gray-300 text-xl leading-none">×</button>
+          <button onclick="closeNotes()" class="text-xs font-medium text-slate-500 dark:text-gray-400 hover:text-slate-800 dark:hover:text-gray-100 px-3 py-1 rounded-lg border border-slate-200 dark:border-gray-600 transition" data-i18n="done">Gotovo</button>
         </div>
       </div>
       <!-- Description (always visible) -->
